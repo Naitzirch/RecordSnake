@@ -17,6 +17,7 @@ bot = discord.Bot()
 # setting variables
 botInfo = db["botInfo"]
 users   = db["users"]
+guilds  = botInfo["guilds"]
 cubecraft_link = "https://www.cubecraft.net/members/"
 
 # bot ready
@@ -26,9 +27,19 @@ async def on_ready():
 
 
 # ping
-@bot.slash_command(guild_ids=[797165284241702972], description="Sends the bot's latency.")
+@bot.slash_command(guild_ids=guilds, description="Sends the bot's latency.")
 async def ping(ctx):
     await ctx.respond(f"Pong! Latency is `{bot.latency:.3}` seconds")
+
+# link to the book java
+@bot.slash_command(guild_ids=guilds, description="Sends the bot's latency.")
+async def java(ctx):
+    await ctx.respond(f"<https://www.cubecraft.net/threads/cubecraft-book-of-world-records.344750/>")
+
+# link to the book bedrock
+@bot.slash_command(guild_ids=guilds, description="Sends the bot's latency.")
+async def bedrock(ctx):
+    await ctx.respond(f"<https://www.cubecraft.net/threads/cubecraft-book-of-world-records.344750/post-1535640>")
 
 
 # Generate a random number so long we find the random number in the submissions
@@ -49,7 +60,7 @@ def get_user_info(Uid):
     return None
 
 # submission command
-@bot.slash_command(guild_ids=[797165284241702972], description="Submit your record, it should appear in the queue.")
+@bot.slash_command(guild_ids=guilds, description="Submit your record, it should appear in the queue.")
 async def submit(ctx, 
                  game: Option(str, "Eggwars, Skywars, etc."), 
                  record: Option(str, "What record are you submitting for? Example: Most kills."), 
@@ -105,17 +116,26 @@ async def submit(ctx,
 
 # command for accepting a submission   
 @has_permissions(administrator=True)
-@bot.slash_command(guild_ids=[797165284241702972], description="Accept a record.")
+@bot.slash_command(guild_ids=guilds, description="Accept a record.")
 async def accept(ctx, scode, prevholder):
-    # remove submission from queue database
+
+    # Find the submission in the queue db
+    submission = None
     for sub in queue["submissions"]:
         if sub["id"] == scode:
             submission = sub
+
+    # If the submission is not found
+    if submission == None:
+        await ctx.respond(f"Submission {scode} was not found.")
+        return
+    
+    # remove submission from queue database
     queue["submissions"].remove(submission)
     queue["inqueue"] -= 1
     queue_json.save(indent=2)
 
-    # remove entry from queue
+    # remove entry from queue channel
     queue_channel = bot.get_channel(int(botInfo["queueChannelID"]))
     msg = await queue_channel.fetch_message(int(submission["botMessage"]))
     await msg.delete()
@@ -137,7 +157,7 @@ async def accept(ctx, scode, prevholder):
     await changelog_channel.send(f"> {submission['GM']}\n> {subMessage}\n> \n> `{prevholder} -> {submission['IGN']}`\n> \n> {submission['submissionMessage']}")
 
     # Send reply to the reviewer that submitted the record
-    await ctx.respond("Submission accepted")
+    await ctx.respond(f"Submission {scode} accepted")
 
 @accept.error
 async def accept_error(ctx, error):
@@ -146,12 +166,20 @@ async def accept_error(ctx, error):
 
 # command for denying a submission   
 @has_permissions(administrator=True)
-@bot.slash_command(guild_ids=[797165284241702972], description="Deny a record.")
+@bot.slash_command(guild_ids=guilds, description="Deny a record.")
 async def deny(ctx, scode, feedback):
-    # remove submission from queue database
+    # Find the submission in the queue db
+    submission = None
     for sub in queue["submissions"]:
         if sub["id"] == scode:
             submission = sub
+
+    # If the submission is not found
+    if submission == None:
+        await ctx.respond(f"Submission {scode} was not found.")
+        return
+    
+    # remove submission from queue database
     queue["submissions"].remove(submission)
     queue["inqueue"] -= 1
     queue_json.save(indent=2)
@@ -174,16 +202,48 @@ async def deny(ctx, scode, feedback):
     feedback_channel = bot.get_channel(int(botInfo["feedbackChannelID"]))
     await feedback_channel.send(f"❌ <@{submission['Uid']}> Your {submission['GM']} submission for \"{subMessage}\" has been denied :c{linkToSubmission}", embed=fbembed)
 
-    await ctx.respond("Submission denied")
+    await ctx.respond(f"Submission {scode} denied")
 
 @deny.error
 async def deny_error(ctx, error):
     if isinstance(error, CheckFailure):
         await ctx.respond("You're not an admin")
 
+# command for deleting a submission   
+@has_permissions(administrator=True)
+@bot.slash_command(guild_ids=guilds, description="Deny a record.")
+async def delete(ctx, scode):
+    # Find the submission in the queue db
+    submission = None
+    for sub in queue["submissions"]:
+        if sub["id"] == scode:
+            submission = sub
+
+    # If the submission is not found
+    if submission == None:
+        await ctx.respond(f"Submission {scode} was not found.")
+        return
+    
+    # remove submission from queue database
+    queue["submissions"].remove(submission)
+    queue["inqueue"] -= 1
+    queue_json.save(indent=2)
+
+    # remove entry from queue
+    queue_channel = bot.get_channel(int(botInfo["queueChannelID"]))
+    msg = await queue_channel.fetch_message(int(submission["botMessage"]))
+    await msg.delete()
+
+    await ctx.respond(f"Submission {scode} deleted")
+
+@delete.error
+async def delete_error(ctx, error):
+    if isinstance(error, CheckFailure):
+        await ctx.respond("You're not an admin")
+
 
 #command for connecting accounts
-@bot.slash_command(guild_ids=[797165284241702972], description="Connect your Discord to your IGN and forums account.")
+@bot.slash_command(guild_ids=guilds, description="Connect your Discord to your IGN and forums account.")
 async def connect(ctx,
                   ign: Option(str, "Your ingame name"),
                   forums_link: Option(str, "link to your forums page")):
