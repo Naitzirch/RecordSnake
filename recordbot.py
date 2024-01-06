@@ -1,0 +1,215 @@
+import discord
+from discord.commands import Option
+from discord.ext.commands import has_permissions, CheckFailure
+from simplejsondb import Database
+import random
+ 
+# Read info from json database
+db_json = Database("db.json", default=dict())
+queue_json = Database("queue.json", default=dict())
+db = db_json.data
+queue = queue_json.data
+
+
+bot = discord.Bot()
+
+
+# setting variables
+botInfo = db["botInfo"]
+users   = db["users"]
+cubecraft_link = "https://www.cubecraft.net/members/"
+
+# bot ready
+@bot.event
+async def on_ready():
+    print(f"We have logged in as {bot.user}")
+
+
+# ping
+@bot.slash_command(guild_ids=[797165284241702972], description="Sends the bot's latency.")
+async def ping(ctx):
+    await ctx.respond(f"Pong! Latency is `{bot.latency:.3}` seconds")
+
+
+# Generate a random number so long we find the random number in the submissions
+def generate_random_id():
+    unique = False
+    while(not unique):
+        unique = True
+        s_id = str(random.randint(1000, 9999))
+        for subs in queue["submissions"]:
+            if s_id == subs["id"]:
+                unique = False
+    return s_id
+
+def get_user_info(Uid):
+    for user in users:
+        if user["id"] == Uid:
+            return user
+    return None
+
+# submission command
+@bot.slash_command(guild_ids=[797165284241702972], description="Submit your record, it should appear in the queue.")
+async def submit(ctx, 
+                 game: Option(str, "Eggwars, Skywars, etc."), 
+                 record: Option(str, "What record are you submitting for? Example: Most kills."), 
+                 evidence: Option(str, "If you want to attach a file, please post it below and write -")):
+    user = get_user_info(str(ctx.author.id))
+    # Check if the user has connected their account.
+    if (user == None):
+        await ctx.respond("Use /connect to connect your account before making a submission.")
+        return
+    
+    # Check if the queue isn't full
+    if queue["inqueue"] >= 9999:
+        await ctx.respond("Queue full, wait for submissions to be reviewed.")
+        return
+
+    # Send a summary of the submission in the submission channel
+    summary = f"> **Game:** {game}\n> **Record:** {record}\n> **Evidence:**\n> {evidence}\n"
+    interaction: discord.Interaction = await ctx.respond(summary + f"Your submission will be reviewed! <@{ctx.author.id}>")
+
+    # Get a link to the summary message
+    message = await interaction.original_response()
+    message_link = f"https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id}"
+
+    # Create the message for in the queue
+    s_id = generate_random_id()
+
+    # Create the embed for in the queue
+    embedVar = discord.Embed(title=f"New submission by {ctx.author.display_name}", description="", color=0xfecc52)
+    embedVar.add_field(name="Details", value=f"**IGN:** {user['IGN']}\n**Game:** {game}\n[{user['IGN']}'s forumes profile]({user['forums']})", inline=False)
+    embedVar.add_field(name="Record", value=record, inline=False)
+    embedVar.add_field(name=f"Evidence: {message_link}", value="", inline=False)
+    embedVar.set_footer(text=f"Submission code: {s_id}")
+
+    # Send the submission in the queue
+    queue_channel = bot.get_channel(int(botInfo["queueChannelID"]))
+    submissionMessage = await queue_channel.send(embed=embedVar)
+
+    # submission object for in the queue db
+    submission = {
+        "id": s_id,
+        "botMessage": submissionMessage.id,
+        "submissionMessage": message_link,
+        "Uid": ctx.author.id,
+        "IGN": user["IGN"],
+        "forums": user["forums"],
+        "GM": game,
+        "message": record
+    }
+
+    queue["submissions"].append(submission)
+    queue["inqueue"] += 1
+    queue_json.save(indent=2)
+
+# command for accepting a submission   
+@has_permissions(administrator=True)
+@bot.slash_command(guild_ids=[797165284241702972], description="Accept a record.")
+async def accept(ctx, scode, prevholder):
+    # remove submission from queue database
+    for sub in queue["submissions"]:
+        if sub["id"] == scode:
+            submission = sub
+    queue["submissions"].remove(submission)
+    queue["inqueue"] -= 1
+    queue_json.save(indent=2)
+
+    # remove entry from queue
+    queue_channel = bot.get_channel(int(botInfo["queueChannelID"]))
+    msg = await queue_channel.fetch_message(int(submission["botMessage"]))
+    await msg.delete()
+
+    # send accept message
+    subMessage = submission["message"][0:47]
+    if len(submission["message"]) > 47:
+        subMessage = subMessage + "..."
+    
+    if (submission["submissionMessage"]):
+        linkToSubmission = f"\nLink to your submission: {submission['submissionMessage']}"
+
+    feedback_channel = bot.get_channel(int(botInfo["feedbackChannelID"]))
+    await feedback_channel.send(f"✅ <@{submission['Uid']}> Your {submission['GM']} submission for \"{subMessage}\" has been accepted!{linkToSubmission}")
+
+    await ctx.respond("Submission accepted")
+
+@accept.error
+async def accept_error(ctx):
+    await ctx.respond("You're not an admin")
+
+# command for denying a submission   
+@has_permissions(administrator=True)
+@bot.slash_command(guild_ids=[797165284241702972], description="Deny a record.")
+async def deny(ctx, scode, feedback):
+    # remove submission from queue database
+    for sub in queue["submissions"]:
+        if sub["id"] == scode:
+            submission = sub
+    queue["submissions"].remove(submission)
+    queue["inqueue"] -= 1
+    queue_json.save(indent=2)
+
+    # remove entry from queue
+    queue_channel = bot.get_channel(int(botInfo["queueChannelID"]))
+    msg = await queue_channel.fetch_message(int(submission["botMessage"]))
+    await msg.delete()
+
+    # send deny message
+    subMessage = submission["message"][0:47]
+    if len(submission["message"]) > 47:
+        subMessage = subMessage + "..."
+    
+    if (submission["submissionMessage"]):
+        linkToSubmission = f"\nLink to your submission: {submission['submissionMessage']}"
+
+    fbembed = discord.Embed(title=f"Staff Feedback", description=feedback, color=0xfecc52)
+
+    feedback_channel = bot.get_channel(int(botInfo["feedbackChannelID"]))
+    await feedback_channel.send(f"❌ <@{submission['Uid']}> Your {submission['GM']} submission for \"{subMessage}\" has been denied :c{linkToSubmission}", embed=fbembed)
+
+    await ctx.respond("Submission denied")
+
+@deny.error
+async def deny_error(ctx):
+    await ctx.respond("You're not an admin")
+
+
+#command for connecting accounts
+@bot.slash_command(guild_ids=[797165284241702972], description="Connect your Discord to your IGN and forums account.")
+async def connect(ctx,
+                  ign: Option(str, "Your ingame name"),
+                  forums_link: Option(str, "link to your forums page")):
+    
+    # Check if the right link was used
+    if not forums_link[0:len(cubecraft_link)] == cubecraft_link:
+        await ctx.respond("Please use the link to your members page, it looks like:\nhttps://www.cubecraft.net/members/naitzirch.375456/")
+        return
+
+    user = {
+        "id": str(ctx.author.id),
+        "IGN": ign,
+        "forums": forums_link
+    }
+
+    msg = "Successfully connected your account!"
+
+    # Check if user already connected their account
+    old_profile = None
+    for u in users:
+        if u["id"] == str(ctx.author.id):
+            old_profile = u
+
+    # remove old details if found
+    if old_profile is not None:
+        users.remove(old_profile)
+        msg = "Successfully updated your account details."
+
+    users.append(user)
+    db_json.save(indent=2)
+
+    await ctx.respond(msg)
+
+
+
+# run the bot
+bot.run(botInfo["token"])
