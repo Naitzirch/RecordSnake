@@ -131,11 +131,18 @@ async def accept(ctx, scode, prevholder):
     feedback_channel = bot.get_channel(int(botInfo["feedbackChannelID"]))
     await feedback_channel.send(f"✅ <@{submission['Uid']}> Your {submission['GM']} submission for \"{subMessage}\" has been accepted!{linkToSubmission}")
 
+
+    # update the changelog
+    changelog_channel = bot.get_channel(int(botInfo["changelogChannelID"]))
+    await changelog_channel.send(f"> {submission['GM']}\n> {subMessage}\n> \n> `{prevholder} -> {submission['IGN']}`\n> \n> {submission['submissionMessage']}")
+
+    # Send reply to the reviewer that submitted the record
     await ctx.respond("Submission accepted")
 
 @accept.error
-async def accept_error(ctx):
-    await ctx.respond("You're not an admin")
+async def accept_error(ctx, error):
+    if isinstance(error, CheckFailure):
+        await ctx.respond("You're not an admin")
 
 # command for denying a submission   
 @has_permissions(administrator=True)
@@ -170,8 +177,9 @@ async def deny(ctx, scode, feedback):
     await ctx.respond("Submission denied")
 
 @deny.error
-async def deny_error(ctx):
-    await ctx.respond("You're not an admin")
+async def deny_error(ctx, error):
+    if isinstance(error, CheckFailure):
+        await ctx.respond("You're not an admin")
 
 
 #command for connecting accounts
