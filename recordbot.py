@@ -114,6 +114,10 @@ async def submit(ctx,
     queue["inqueue"] += 1
     queue_json.save(indent=2)
 
+    # update submission count
+    botInfo["submissions"] += 1
+    db_json.save(indent=2)
+
 # command for accepting a submission   
 @has_permissions(administrator=True)
 @bot.slash_command(guild_ids=guilds, description="Accept a record.")
