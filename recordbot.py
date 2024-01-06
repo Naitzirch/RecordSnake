@@ -29,7 +29,7 @@ async def on_ready():
 # ping
 @bot.slash_command(guild_ids=guilds, description="Sends the bot's latency.")
 async def ping(ctx):
-    await ctx.respond(f"Pong! Latency is `{bot.latency:.3}` seconds")
+    await ctx.respond(f"Pong! Latency is `{bot.latency:.4}` seconds")
 
 # link to the book java
 @bot.slash_command(guild_ids=guilds, description="Sends the bot's latency.")
