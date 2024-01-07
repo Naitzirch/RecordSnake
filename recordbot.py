@@ -32,12 +32,12 @@ async def ping(ctx):
     await ctx.respond(f"Pong! Latency is `{bot.latency:.4}` seconds")
 
 # link to the book java
-@bot.slash_command(guild_ids=guilds, description="Sends the bot's latency.")
+@bot.slash_command(guild_ids=guilds, description="Sends a link to the book for java.")
 async def java(ctx):
     await ctx.respond(f"<https://www.cubecraft.net/threads/cubecraft-book-of-world-records.344750/>")
 
 # link to the book bedrock
-@bot.slash_command(guild_ids=guilds, description="Sends the bot's latency.")
+@bot.slash_command(guild_ids=guilds, description="Sends a link to the book for bedrock.")
 async def bedrock(ctx):
     await ctx.respond(f"<https://www.cubecraft.net/threads/cubecraft-book-of-world-records.344750/post-1535640>")
 
