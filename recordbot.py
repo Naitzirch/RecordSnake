@@ -3,6 +3,7 @@ from discord.commands import Option
 from discord.ext.commands import has_permissions, CheckFailure
 from simplejsondb import Database
 import random
+from discord.message import Attachment
  
 # Read info from json database
 db_json = Database("db.json", default=dict())
@@ -64,7 +65,8 @@ def get_user_info(Uid):
 async def submit(ctx, 
                  game: Option(str, "Eggwars, Skywars, etc."), 
                  record: Option(str, "What record are you submitting for? Example: Most kills."), 
-                 evidence: Option(str, "If you want to attach a file, please post it below and write -")):
+                 evidence: Option(str, description="An image can be pasted or uploaded in the attachment field"),
+                 attachment: Option(Attachment, description="Image or video", required=False)):
     user = get_user_info(str(ctx.author.id))
     # Check if the user has connected their account.
     if (user == None):
@@ -77,7 +79,7 @@ async def submit(ctx,
         return
 
     # Send a summary of the submission in the submission channel
-    summary = f"> **Game:** {game}\n> **Record:** {record}\n> **Evidence:**\n> {evidence}\n"
+    summary = f"> **Game:** {game}\n> **Record:** {record}\n> **Evidence:**\n> {evidence}\n> {attachment}\n"
     interaction: discord.Interaction = await ctx.respond(summary + f"Your submission will be reviewed! <@{ctx.author.id}>")
 
     # Get a link to the summary message
