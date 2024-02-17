@@ -79,7 +79,10 @@ async def submit(ctx,
         return
 
     # Send a summary of the submission in the submission channel
-    summary = f"> **Game:** {game}\n> **Record:** {record}\n> **Evidence:**\n> {evidence}\n> {attachment}\n"
+    ats_string = ""
+    if attachment is not None:
+        ats_string = f"\n > {attachment}"
+    summary = f"> **Game:** {game}\n> **Record:** {record}\n> **Evidence:**\n> {evidence}{ats_string}\n"
     interaction: discord.Interaction = await ctx.respond(summary + f"Your submission will be reviewed! <@{ctx.author.id}>")
 
     # Get a link to the summary message
