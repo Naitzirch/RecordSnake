@@ -55,8 +55,8 @@ async def bedrock(ctx):
 
 @bot.slash_command(guild_ids=guilds, description="Get user info via Discord or Minecraft IGN (leave empty for your own info)")
 async def info(ctx,
-               user_name: Option(Member, "Discord name", required=False, default=False, name="discord"),
-               ign: Option(str, "Minecraft name", required=False, default=False)):
+               user_name: Option(Member, "Discord name", required=False, name="discord"),
+               ign: Option(str, "Minecraft name", required=False)):
     
     # Get user info by looking in the db for discord id or Minecraft IGN
     user = None
@@ -67,33 +67,63 @@ async def info(ctx,
     else:
         user = get_user_info(str(ctx.author.id), users)
 
-    if user == None:
+    if user == None and ign == None:
+        if user_name == None:
+            await ctx.respond("Please connect your account using `/connect` to view your stats!")
+            return
         await ctx.respond("This person has not connected their account 🥲")
         return
 
-    # Get discord details of the user (In case we only knew the IGN)
-    disc_user = bot.get_user(int(user["id"]))
-    if disc_user == None:
-        await ctx.respond("This user is not in the server")
-        return
+    if user != None:
+        ign = user["IGN"]
 
+    # Get discord details of the user (In case we only knew the IGN)
+    display_name = ign
+
+    forums = "Account not connected"
+    disc_user = None
+    if user is not None:
+        disc_user = bot.get_user(int(user["id"]))
+        forums = f"[Forums profile]({user['forums']})"
+    if disc_user is not None:
+        display_name = disc_user.display_name
+
+    # Get external data of this player
+    df = get_ext_player_data()
+    xpd = df.loc[df['Player'] == ign]
+
+    position = "_"
+    records  = "0"
+    if len(xpd) == 1:
+        position = xpd['Position'].values[0]
+        records = xpd['Records'].values[0]
+        
     description = ""
-    description += f"Position: #\n"
-    description += f"Records: soon:tm:\n"
-    description += f"Minecraft: {user['IGN']}\n"
-    description += f"[Forums profile]({user['forums']})\n"
+    description += f"Position: # {position}\n"
+    description += f"Records: {records}\n"
+    description += f"Minecraft: {ign}\n"
+    description += f"{forums}\n"
+
+    # Fancy colours for top 3
+    colour = discord.Colour.blurple()
+    if position == 1:
+        colour = discord.Colour.gold()
+    if position == 2:
+        colour = discord.Colour.from_rgb(192,192,192)
+    if position == 3:
+        colour = discord.Colour.orange()
 
     embed = discord.Embed(
-        title=f"{disc_user.display_name}'s user info",
+        title=f"{display_name}'s user info",
         description=description,
-        color=discord.Colour.blurple(), # Pycord provides a class with default colors you can choose from
+        color=colour
     )
  
     #embed.set_footer(text="Footer! No markdown here.") # footers can have icons too
-    embed.set_author(name="CCGRC", icon_url=ctx.guild.icon.url) #"https://cdn.discordapp.com/icons/750712517877039104/48e1add57beb45d7df44ab78397ab947.webp?size=96"
-    embed.set_thumbnail(url=f"https://mc-heads.net/head/{user['IGN']}")
+    embed.set_author(name="CCGRC", icon_url=ctx.guild.icon.url)
+    embed.set_thumbnail(url=f"https://mc-heads.net/head/{ign}")
 
-    await ctx.respond(embed=embed) # Send the embed with some text
+    await ctx.respond(embed=embed)
 
 
 # submission command
