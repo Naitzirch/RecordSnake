@@ -11,7 +11,6 @@ class Base(commands.Cog):
 
     @slash_command()
     async def leaderboard(self, ctx):
-        """Shows you a  of who has the most records!"""
         ext_player_data = get_ext_player_data()
         pages = []
         positi_field = "```\n"
