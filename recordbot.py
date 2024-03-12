@@ -1,9 +1,15 @@
 import discord
 from discord.commands import Option
 from discord.ext.commands import has_permissions, CheckFailure
-from simplejsondb import Database
-import random
 from discord.message import Attachment
+from discord.member import Member
+
+from simplejsondb import Database
+
+from helperfunctions import *
+
+intents = discord.Intents.default()
+intents.members = True
  
 # Read info from json database
 db_json = Database("db.json", default=dict())
@@ -12,7 +18,10 @@ db = db_json.data
 queue = queue_json.data
 
 
-bot = discord.Bot()
+bot = discord.Bot(intents=intents)
+
+import leaderboard
+leaderboard.setup(bot)
 
 
 # setting variables
@@ -20,6 +29,8 @@ botInfo = db["botInfo"]
 users   = db["users"]
 guilds  = botInfo["guilds"]
 cubecraft_link = "https://www.cubecraft.net/members/"
+
+
 
 # bot ready
 @bot.event
@@ -42,23 +53,48 @@ async def java(ctx):
 async def bedrock(ctx):
     await ctx.respond(f"<https://www.cubecraft.net/threads/cubecraft-book-of-world-records.344750/post-1535640>")
 
+@bot.slash_command(guild_ids=guilds, description="Get user info via Discord or Minecraft IGN (leave empty for your own info)")
+async def info(ctx,
+               user_name: Option(Member, "Discord name", required=False, default=False, name="discord"),
+               ign: Option(str, "Minecraft name", required=False, default=False)):
+    
+    # Get user info by looking in the db for discord id or Minecraft IGN
+    user = None
+    if user_name:
+        user = get_user_info(str(user_name.id), users)
+    elif ign:
+        user = get_user_info_by_ign(ign, users)
+    else:
+        user = get_user_info(str(ctx.author.id), users)
 
-# Generate a random number so long we find the random number in the submissions
-def generate_random_id():
-    unique = False
-    while(not unique):
-        unique = True
-        s_id = str(random.randint(1000, 9999))
-        for subs in queue["submissions"]:
-            if s_id == subs["id"]:
-                unique = False
-    return s_id
+    if user == None:
+        await ctx.respond("This person has not connected their account 🥲")
+        return
 
-def get_user_info(Uid):
-    for user in users:
-        if user["id"] == Uid:
-            return user
-    return None
+    # Get discord details of the user (In case we only knew the IGN)
+    disc_user = bot.get_user(int(user["id"]))
+    if disc_user == None:
+        await ctx.respond("This user is not in the server")
+        return
+
+    description = ""
+    description += f"Position: #\n"
+    description += f"Records: soon:tm:\n"
+    description += f"Minecraft: {user['IGN']}\n"
+    description += f"[Forums profile]({user['forums']})\n"
+
+    embed = discord.Embed(
+        title=f"{disc_user.display_name}'s user info",
+        description=description,
+        color=discord.Colour.blurple(), # Pycord provides a class with default colors you can choose from
+    )
+ 
+    #embed.set_footer(text="Footer! No markdown here.") # footers can have icons too
+    embed.set_author(name="CCGRC", icon_url=ctx.guild.icon.url) #"https://cdn.discordapp.com/icons/750712517877039104/48e1add57beb45d7df44ab78397ab947.webp?size=96"
+    embed.set_thumbnail(url=f"https://mc-heads.net/head/{user['IGN']}")
+
+    await ctx.respond(embed=embed) # Send the embed with some text
+
 
 # submission command
 @bot.slash_command(guild_ids=guilds, description="Submit your record, it should appear in the queue.")
@@ -90,7 +126,7 @@ async def submit(ctx,
     message_link = f"https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id}"
 
     # Create the message for in the queue
-    s_id = generate_random_id()
+    s_id = generate_random_id(queue)
 
     # Create the embed for in the queue
     embedVar = discord.Embed(title=f"New submission by {ctx.author.display_name}", description="", color=0xfecc52)
