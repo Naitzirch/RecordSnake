@@ -1,8 +1,8 @@
 import discord
 from discord.ext import commands
 from discord.commands import slash_command
-from discord.ext.pages import Paginator, Page
-
+from discord.ext.pages import Paginator
+import numpy as np
 from helperfunctions import *
 
 class Base(commands.Cog):
@@ -11,37 +11,40 @@ class Base(commands.Cog):
 
     @slash_command()
     async def leaderboard(self, ctx):
-        ext_player_data = get_ext_player_data()
         pages = []
-        positi_field = "```\n"
-        player_field = "```\n"
-        record_field = "```\n"
+        rows_10 = np.empty((0, 3), dtype=object)
+        description = "```\n"
 
+        ext_player_data = get_ext_player_data()
         for index, row in enumerate(ext_player_data.values):
-            positi, player, record = row
-            positi_field += f"{positi}\n"
-            player_field += f"{player}\n"
-            record_field += f"{record}\n"
-
+            rows_10 = np.vstack((rows_10, row)) # create array of <= 10 consecutive rows
             if (index + 1) % 10 == 0 or index == len(ext_player_data.values) - 1:
-                positi_field += "```"
-                player_field += "```"
-                record_field += "```"
+                # Check max values of len(index), len(player) and len(records)
+                #max_len_index = len(str(rows_10[len(rows_10)-1][0]))
+                #max_len_player = max(map(lambda x: len(str(x)), rows_10[:, 1]))
+                #max_len_record = max(map(lambda x: len(str(x)), rows_10[:, 2]))
+
+                for row in rows_10:
+                    positi, player, record = row
+                    description += " "*(2 - len(str(positi))) + f"{positi}  "
+                    description += f"{player}" + " "*(16 - len(player))
+                    description += " "*(3 - len(str(record))) + f"{record}\n"
+                description += "```"
+                
                 embed = discord.Embed(
                     title="Records Leaderboard",
                     description="Leaderboard of records in CCGRC!",
                     color=discord.Colour.green()
                 )
                 #embed.set_thumbnail(url=ctx.guild.icon.url)
-                embed.add_field(name="‎ ‎ #", value=positi_field, inline=True)
-                embed.add_field(name="‎ ‎ Player", value=player_field, inline=True)
-                embed.add_field(name="‎ ‎ Records", value=record_field, inline=True)
+                name_string = "‎ ‎ ‎ ‎ #     Player                        Records"
+                embed.add_field(name=name_string, value=description)
 
-                # reset strings so the next page can be created
-                pages.append(embed)
-                positi_field = "```\n"
-                player_field = "```\n"
-                record_field = "```\n"
+                pages.append(embed) # Add the embed to the page list
+
+                # reset string so the next page can be created
+                description = "```\n"
+                rows_10 = np.empty((0, 3), dtype=object)
         
         paginator = Paginator(pages=pages)
         await paginator.respond(ctx.interaction)
