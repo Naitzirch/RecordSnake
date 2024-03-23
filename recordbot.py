@@ -90,19 +90,34 @@ async def info(ctx,
 
     # Get external data of this player
     df = get_ext_player_data()
-    xpd = df.loc[df['Player'] == ign]
+    xpd = df.loc[df['Player'].str.lower() == ign.lower()]
+
+    description = ""
+    description += f"Minecraft: {ign}\n"
+    if ' ' in ign:
+        platform = 'Bedrock'
+    else:
+        platform = 'Java?'
 
     position = "_"
-    records  = "0"
     if len(xpd) == 1:
+        platform = xpd['Platform'].values[0]
         position = xpd['Position'].values[0]
         records = xpd['Records'].values[0]
+        LCR = xpd['LCR'].values[0]
+        OCR = xpd['OCR'].values[0]
         
-    description = ""
-    description += f"Position: # {position}\n"
-    description += f"Records: {records}\n"
-    description += f"Minecraft: {ign}\n"
-    description += f"{forums}\n"
+        description += f"Platform: {platform}\n"
+        description += f"Position: # {position}\n"
+        description += f"Records: {records}\n"
+        description += f"Latest Record:\n{LCR}\n"
+        description += f"Oldest Record:\n{OCR}\n\n"
+    else:
+        description += f"Platform: {platform}\n"
+        description += f"Records: 0\n\n"
+
+    description += f"{forums}"
+
 
     # Fancy colours for top 3
     colour = discord.Colour.blurple()
@@ -121,6 +136,10 @@ async def info(ctx,
  
     #embed.set_footer(text="Footer! No markdown here.") # footers can have icons too
     embed.set_author(name="CCGRC", icon_url=ctx.guild.icon.url)
+
+    if platform == 'Bedrock':
+        ign = 'bedrock'
+
     embed.set_thumbnail(url=f"https://mc-heads.net/head/{ign}")
 
     await ctx.respond(embed=embed)

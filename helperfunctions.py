@@ -26,7 +26,7 @@ def get_user_info(Uid, users):
 
 def get_user_info_by_ign(ign, users):
     for user in users:
-        if user["IGN"] == ign:
+        if user["IGN"].lower() == ign.lower():
             return user
     return None
 
@@ -34,15 +34,14 @@ def get_ext_player_data():
     # Try to download and read the onedrive excel file into a df
     df = None
     try:
-        df = pd.read_excel(EXCEL_URL, 'Test', engine='openpyxl')    # add sheetname here
-        # Use engine='openpyxl' to handle .xlsx files
+        df = pd.read_excel(EXCEL_URL, engine='openpyxl')    # add sheetname here
     except Exception as e:
         print("An error occurred while reading the Excel file:", e)
         return
 
     # Clean the df
-    df = df.drop(['Unnamed: 0', 'Unnamed: 1'], axis=1)
-    df = df.rename(columns={"Unnamed: 2": "Position", "Unnamed: 3": "Player", "Unnamed: 4": "Records"})[2:]
+    df = df.drop(['Unnamed: 0', 'Unnamed: 8', 'Unnamed: 9', 'Unnamed: 10'], axis=1)
+    df = df.rename(columns={"Unnamed: 1": "Position", "Unnamed: 2": "Player", "Unnamed: 3": "Records", "Unnamed: 4": "Platform", "Unnamed: 5": "OCR", "Unnamed: 6": "LCR", "Unnamed: 7": "RC"})[3:]
 
     return df
     

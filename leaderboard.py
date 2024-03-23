@@ -15,7 +15,7 @@ class Base(commands.Cog):
         rows_10 = np.empty((0, 3), dtype=object)
         description = "```\n"
 
-        ext_player_data = get_ext_player_data()
+        ext_player_data = get_ext_player_data()[['Position', 'Player', 'Records']]
         for index, row in enumerate(ext_player_data.values):
             rows_10 = np.vstack((rows_10, row)) # create array of <= 10 consecutive rows
             if (index + 1) % 10 == 0 or index == len(ext_player_data.values) - 1:
@@ -33,6 +33,7 @@ class Base(commands.Cog):
                 
                 embed = discord.Embed(
                     title="Records Leaderboard",
+                    url=EXCEL_URL.replace("download", "view"),
                     description="Leaderboard of records in CCGRC!",
                     color=discord.Colour.green()
                 )
