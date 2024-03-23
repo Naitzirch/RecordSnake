@@ -40,8 +40,8 @@ def get_ext_player_data():
         return
 
     # Clean the df
-    df = df.drop(['Unnamed: 0', 'Unnamed: 8', 'Unnamed: 9', 'Unnamed: 10'], axis=1)
-    df = df.rename(columns={"Unnamed: 1": "Position", "Unnamed: 2": "Player", "Unnamed: 3": "Records", "Unnamed: 4": "Platform", "Unnamed: 5": "OCR", "Unnamed: 6": "LCR", "Unnamed: 7": "RC"})[3:]
+    df = df.drop(['Unnamed: 0', 'Unnamed: 8', 'Unnamed: 10'], axis=1)
+    df = df.rename(columns={"Unnamed: 1": "Position", "Unnamed: 2": "Player", "Unnamed: 3": "Records", "Unnamed: 4": "Platform", "Unnamed: 5": "OCR", "Unnamed: 6": "LCR", "Unnamed: 7": "RC", "Unnamed: 9": "discord_id"})[3:]
 
     return df
     

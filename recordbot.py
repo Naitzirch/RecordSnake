@@ -57,7 +57,8 @@ async def bedrock(ctx):
 async def info(ctx,
                user_name: Option(Member, "Discord name", required=False, name="discord"),
                ign: Option(str, "Minecraft name", required=False)):
-    
+    discord_id = ""
+
     # Get user info by looking in the db for discord id or Minecraft IGN
     user = None
     if user_name:
@@ -76,6 +77,7 @@ async def info(ctx,
 
     if user != None:
         ign = user["IGN"]
+        discord_id = user["id"]
 
     # Get discord details of the user (In case we only knew the IGN)
     display_name = ign
@@ -93,7 +95,7 @@ async def info(ctx,
     xpd = df.loc[df['Player'].str.lower() == ign.lower()]
 
     description = ""
-    description += f"Minecraft: {ign}\n"
+    description += f"**Minecraft:** {ign}\n"
     if ' ' in ign:
         platform = 'Bedrock'
     else:
@@ -106,15 +108,18 @@ async def info(ctx,
         records = xpd['Records'].values[0]
         LCR = xpd['LCR'].values[0]
         OCR = xpd['OCR'].values[0]
+
+        if xpd['discord_id'].values[0] != '??':
+            discord_id = xpd['discord_id'].values[0]
         
-        description += f"Platform: {platform}\n"
-        description += f"Position: # {position}\n"
-        description += f"Records: {records}\n"
-        description += f"Latest Record:\n{LCR}\n"
-        description += f"Oldest Record:\n{OCR}\n\n"
+        description += f"**Platform:** {platform}\n"
+        description += f"**Position:** # {position}\n"
+        description += f"**Records:** {records}\n\n"
+        description += f"**Latest Record:**\n{LCR}\n"
+        description += f"**Oldest Record:**\n{OCR}\n\n"
     else:
-        description += f"Platform: {platform}\n"
-        description += f"Records: 0\n\n"
+        description += f"**Platform:** {platform}\n"
+        description += f"**Records:** 0\n\n"
 
     description += f"{forums}"
 
@@ -134,13 +139,14 @@ async def info(ctx,
         color=colour
     )
  
-    #embed.set_footer(text="Footer! No markdown here.") # footers can have icons too
     embed.set_author(name="CCGRC", icon_url=ctx.guild.icon.url)
 
     if platform == 'Bedrock':
         ign = 'bedrock'
 
-    embed.set_thumbnail(url=f"https://mc-heads.net/head/{ign}")
+    embed.set_thumbnail(url=f"https://mc-heads.net/head/{ign}/left")
+
+    embed.set_footer(text=f"{discord_id}")
 
     await ctx.respond(embed=embed)
 
