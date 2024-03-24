@@ -144,9 +144,12 @@ async def info(ctx,
     if platform == 'Bedrock':
         ign = 'bedrock'
 
-    embed.set_thumbnail(url=f"https://mc-heads.net/head/{ign}/left")
+    embed.set_thumbnail(url=f"https://mc-heads.net/head/{ign}")
 
-    embed.set_footer(text=f"{discord_id}")
+    if disc_user:
+        embed.set_footer(text=f"{discord_id}", icon_url=disc_user.avatar.url)
+    elif discord_id:
+        embed.set_footer(text=f"{discord_id}")
 
     await ctx.respond(embed=embed)
 
