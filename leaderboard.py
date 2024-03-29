@@ -5,11 +5,17 @@ from discord.ext.pages import Paginator
 import numpy as np
 from helperfunctions import *
 
+from simplejsondb import Database
+db_json = Database("db.json", default=dict())
+db = db_json.data
+botInfo = db["botInfo"]
+guilds  = botInfo["guilds"]
+
 class Base(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @slash_command()
+    @slash_command(guild_ids=guilds, description="Sends a leaderboard of who own the most records!")
     async def leaderboard(self, ctx):
         pages = []
         rows_10 = np.empty((0, 3), dtype=object)
