@@ -33,7 +33,7 @@ class Base(commands.Cog):
                 
                 embed = discord.Embed(
                     title="Records Leaderboard",
-                    url=EXCEL_URL.replace("download", "view"),
+                    url=EXCEL_URL.replace("download", "embed"),
                     description="Leaderboard of records in CCGRC!",
                     color=discord.Colour.green()
                 )
