@@ -99,7 +99,7 @@ async def info(ctx,
     if ' ' in ign:
         platform = 'Bedrock'
     else:
-        platform = 'Java?'
+        platform = 'Unknown'
 
     position = "_"
     if len(xpd) == 1:
