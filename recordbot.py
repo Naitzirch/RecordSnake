@@ -76,7 +76,7 @@ async def info(ctx,
         return
 
     if user != None:
-        ign = user["IGN"]
+        ign = user["IGN"].strip()
         discord_id = user["id"]
 
     # Get discord details of the user (In case we only knew the IGN)

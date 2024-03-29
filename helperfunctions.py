@@ -26,7 +26,7 @@ def get_user_info(Uid, users):
 
 def get_user_info_by_ign(ign, users):
     for user in users:
-        if user["IGN"].lower() == ign.lower():
+        if user["IGN"].lower().strip() == ign.lower():
             return user
     return None
 
