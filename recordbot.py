@@ -161,7 +161,7 @@ async def submit(ctx,
                  record: Option(str, "What record are you submitting for? Example: Most kills."), 
                  evidence: Option(str, description="Links go here. An image can be pasted or uploaded in the optional attachment field"),
                  attachment: Option(Attachment, description="Image or video", required=False)):
-    user = get_user_info(str(ctx.author.id))
+    user = get_user_info(str(ctx.author.id), users)
     # Check if the user has connected their account.
     if (user == None):
         await ctx.respond("Use /connect to connect your account before making a submission.")
