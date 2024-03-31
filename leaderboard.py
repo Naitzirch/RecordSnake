@@ -33,7 +33,7 @@ class Base(commands.Cog):
                 for row in rows_10:
                     positi, player, record = row
                     description += " "*(2 - len(str(positi))) + f"{positi}  "
-                    description += f"{player}" + " "*(16 - len(player))
+                    description += f"{player}" + " "*(26 - len(player))
                     description += " "*(3 - len(str(record))) + f"{record}\n"
                 description += "```"
                 

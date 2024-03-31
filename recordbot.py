@@ -86,7 +86,7 @@ async def info(ctx,
     disc_user = None
     if user is not None:
         disc_user = bot.get_user(int(user["id"]))
-        forums = f"[Forums profile]({user['forums']})"
+        forums = f"[Forums profile]({user['forums']})".replace("_", "\_")
     if disc_user is not None:
         display_name = disc_user.display_name
 
@@ -95,7 +95,7 @@ async def info(ctx,
     xpd = df.loc[df['Player'].str.lower() == ign.lower()]
 
     description = ""
-    description += f"**Minecraft:** {ign}\n"
+    description += f"**Minecraft:** {ign}\n".replace("_", "\_")
     if ' ' in ign:
         platform = 'Bedrock'
     else:
