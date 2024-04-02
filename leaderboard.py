@@ -32,7 +32,7 @@ class Base(commands.Cog):
 
                 for row in rows_10:
                     positi, player, record = row
-                    description += " "*(2 - len(str(positi))) + f"{positi}  "
+                    description += " "*(3 - len(str(positi))) + f"{positi}  "
                     description += f"{player}" + " "*(26 - len(player))
                     description += " "*(3 - len(str(record))) + f"{record}\n"
                 description += "```"
@@ -44,7 +44,7 @@ class Base(commands.Cog):
                     color=discord.Colour.green()
                 )
                 #embed.set_thumbnail(url=ctx.guild.icon.url)
-                name_string = "‎ ‎ ‎ ‎ #     Player                                                  Records‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ "
+                name_string = "‎ ‎ ‎ ‎ ‎ ‎ #     Player                                                    Records‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ "
                 embed.add_field(name=name_string, value=description)
 
                 pages.append(embed) # Add the embed to the page list
