@@ -44,7 +44,7 @@ class Base(commands.Cog):
                     color=discord.Colour.green()
                 )
                 #embed.set_thumbnail(url=ctx.guild.icon.url)
-                name_string = "‎ ‎ ‎ ‎ #     Player                        Records"
+                name_string = "‎ ‎ ‎ ‎ #     Player                                                  Records‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ "
                 embed.add_field(name=name_string, value=description)
 
                 pages.append(embed) # Add the embed to the page list
