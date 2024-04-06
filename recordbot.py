@@ -174,10 +174,11 @@ async def submit(ctx,
 
     # Send a summary of the submission in the submission channel
     ats_string = ""
+    summary = f"> **Game:** {game}\n> **Record:** {record}\n> **Evidence:**\n> {evidence}\n"
     if attachment is not None:
-        ats_string = f"\n > {attachment}"
-    summary = f"> **Game:** {game}\n> **Record:** {record}\n> **Evidence:**\n> {evidence}{ats_string}\n"
-    interaction: discord.Interaction = await ctx.respond(summary + f"Your submission will be reviewed! <@{ctx.author.id}>")
+        interaction: discord.Interaction = await ctx.respond((summary + f"Your submission will be reviewed! <@{ctx.author.id}>"), file=await attachment.to_file())
+    else:
+        interaction: discord.Interaction = await ctx.respond(summary + f"Your submission will be reviewed! <@{ctx.author.id}>")
 
     # Get a link to the summary message
     message = await interaction.original_response()
