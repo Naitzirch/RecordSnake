@@ -56,8 +56,11 @@ def get_ext_player_data():
         creds = Credentials.from_authorized_user_file("token.json", SCOPES)
     # If there are no (valid) credentials available, tell the user to log in.
     if not creds or not creds.valid:
-        print("Administrator must log in")
-        return df
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            print("Administrator must log in")
+            return df
 
     try:
         service = build("sheets", "v4", credentials=creds)
