@@ -21,10 +21,14 @@ class Base(commands.Cog):
         rows_10 = np.empty((0, 3), dtype=object)
         description = "```\n"
 
-        ext_player_data = get_ext_player_data()[['Position', 'Player', 'Records']]
-        for index, row in enumerate(ext_player_data.values):
+        ext_player_data = get_ext_player_data()
+        if ext_player_data.empty:
+            await ctx.respond("The player data could not be fetched :(")
+            return
+        xpd = ext_player_data[['Position', 'Player', 'Records']]
+        for index, row in enumerate(xpd.values):
             rows_10 = np.vstack((rows_10, row)) # create array of <= 10 consecutive rows
-            if (index + 1) % 20 == 0 or index == len(ext_player_data.values) - 1:
+            if (index + 1) % 20 == 0 or index == len(xpd.values) - 1:
                 # Check max values of len(index), len(player) and len(records)
                 #max_len_index = len(str(rows_10[len(rows_10)-1][0]))
                 #max_len_player = max(map(lambda x: len(str(x)), rows_10[:, 1]))
@@ -39,7 +43,7 @@ class Base(commands.Cog):
                 
                 embed = discord.Embed(
                     title="Records Leaderboard",
-                    url=EXCEL_URL.replace("download", "embed"),
+                    url=SHEET_URL,
                     description="Leaderboard of records in CCGRC!",
                     color=discord.Colour.green()
                 )

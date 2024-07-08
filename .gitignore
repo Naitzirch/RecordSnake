@@ -1,5 +1,7 @@
 db.json
 queue.json
-/exclude
+credentials.json
+token.json
 EXCEL_URL.txt
+/exclude
 /.vscode

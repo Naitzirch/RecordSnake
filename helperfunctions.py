@@ -2,11 +2,6 @@ import random
 import pandas as pd
 
 
-EXCEL_URL_TXT = open("EXCEL_URL.txt", "r")
-EXCEL_URL = EXCEL_URL_TXT.read()
-EXCEL_URL_TXT.close()
-
-
 # Generate a random number so long we find the random number in the submissions
 def generate_random_id(queue):
     unique = False
@@ -30,18 +25,63 @@ def get_user_info_by_ign(ign, users):
             return user
     return None
 
+
+# Try to access the google sheets document
+import os.path
+
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+
+# If modifying these scopes, delete the file token.json.
+SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
+
+# The ID and range of a sample spreadsheet.
+SHEET_URL = "https://docs.google.com/spreadsheets/d/1yGtbKkYQSf4KGBZd_uHJ5m52hVLIgdI59o3vqmN0F2Q/edit?usp=sharing"
+SAMPLE_SPREADSHEET_ID = "1yGtbKkYQSf4KGBZd_uHJ5m52hVLIgdI59o3vqmN0F2Q"
+SAMPLE_RANGE_NAME = "Records!B5:J270"
+
 def get_ext_player_data():
-    # Try to download and read the onedrive excel file into a df
-    df = None
+    """Get player data from the google sheet leaderboard
+
+    Returns:
+        Pandas DataFrame: empty if data couldn't be fetched for some reason. Filled with all columns if the data could be fetched
+    """
+    df = pd.DataFrame()
+    creds = None
+    # The file token.json stores the user's access and refresh tokens
+    if os.path.exists("token.json"):
+        creds = Credentials.from_authorized_user_file("token.json", SCOPES)
+    # If there are no (valid) credentials available, tell the user to log in.
+    if not creds or not creds.valid:
+        print("Administrator must log in")
+        return df
+
     try:
-        df = pd.read_excel(EXCEL_URL, engine='openpyxl')    # add sheetname here
-    except Exception as e:
-        print("An error occurred while reading the Excel file:", e)
-        return
+        service = build("sheets", "v4", credentials=creds)
+
+        # Call the Sheets API
+        sheet = service.spreadsheets()
+        result = (
+            sheet.values()
+            .get(spreadsheetId=SAMPLE_SPREADSHEET_ID, range=SAMPLE_RANGE_NAME)
+            .execute()
+        )
+        values = result.get("values", [])
+
+        if not values:
+            print("No data found.")
+            return df
+        df = pd.DataFrame( values )
+
+    except HttpError as err:
+        print(err)
 
     # Clean the df
-    df = df.drop(['Unnamed: 0', 'Unnamed: 8', 'Unnamed: 10'], axis=1)
-    df = df.rename(columns={"Unnamed: 1": "Position", "Unnamed: 2": "Player", "Unnamed: 3": "Records", "Unnamed: 4": "Platform", "Unnamed: 5": "OCR", "Unnamed: 6": "LCR", "Unnamed: 7": "RC", "Unnamed: 9": "discord_id"})[3:]
+    df = df.drop([7], axis=1)
+    df = df.rename(columns={0: "Position", 1: "Player", 2: "Records", 3: "Platform", 4: "OCR", 5: "LCR", 6: "RC", 8: "discord_id"})
 
     return df
     
