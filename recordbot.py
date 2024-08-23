@@ -6,6 +6,8 @@ from discord.member import Member
 
 from simplejsondb import Database
 
+from enum import Enum
+
 from helperfunctions import *
 
 intents = discord.Intents.default()
@@ -147,7 +149,7 @@ async def info(ctx,
     embed.set_thumbnail(url=f"https://mc-heads.net/head/{ign}")
 
     if disc_user:
-        embed.set_footer(text=f"{discord_id}", icon_url=disc_user.avatar.url)
+        embed.set_footer(text=f"{discord_id}", icon_url=disc_user.display_avatar)
     elif discord_id:
         embed.set_footer(text=f"{discord_id}")
 
@@ -157,7 +159,8 @@ async def info(ctx,
 # submission command
 @bot.slash_command(guild_ids=guilds, description="Submit your record, it should appear in the queue.")
 async def submit(ctx, 
-                 game: Option(str, "Eggwars, Skywars, etc."), 
+                 platform: Option(Enum('Platform', ['Java', 'Bedrock', 'Other']), "Platform type"),
+                 game: Option(str, "Eggwars, Skywars, etc."),
                  record: Option(str, "What record are you submitting for? Example: Most kills."), 
                  evidence: Option(str, description="Links go here. An image can be pasted or uploaded in the optional attachment field"),
                  attachment: Option(Attachment, description="Image or video", required=False)):
@@ -174,7 +177,7 @@ async def submit(ctx,
 
     # Send a summary of the submission in the submission channel
     ats_string = ""
-    summary = f"> **Game:** {game}\n> **Record:** {record}\n> **Evidence:**\n> {evidence}\n"
+    summary = f"> **Platform:** {platform.name}\n> **Game:** {game}\n> **Record:** {record}\n> **Evidence:**\n> {evidence}\n"
     if attachment is not None:
         interaction: discord.Interaction = await ctx.respond((summary + f"Your submission will be reviewed! <@{ctx.author.id}>"), file=await attachment.to_file())
     else:
@@ -189,7 +192,7 @@ async def submit(ctx,
 
     # Create the embed for in the queue
     embedVar = discord.Embed(title=f"New submission by {ctx.author.display_name}", description="", color=0xfecc52)
-    embedVar.add_field(name="Details", value=f"**IGN:** {user['IGN']}\n**Game:** {game}\n[{user['IGN']}'s forumes profile]({user['forums']})", inline=False)
+    embedVar.add_field(name="Details", value=f"**IGN:** {user['IGN']}\n**Platform:** {platform.name}\n**Game:** {game}\n[{user['IGN']}'s forumes profile]({user['forums']})", inline=False)
     embedVar.add_field(name="Record", value=record, inline=False)
     embedVar.add_field(name=f"Evidence: {message_link}", value="", inline=False)
     embedVar.set_footer(text=f"Submission code: {s_id}")
@@ -313,10 +316,9 @@ async def deny_error(ctx, error):
     if isinstance(error, CheckFailure):
         await ctx.respond("You're not an admin")
 
-# command for deleting a submission   
-@has_permissions(administrator=True)
-@bot.slash_command(guild_ids=guilds, description="Deny a record.")
-async def delete(ctx, scode):
+# command for deleting a submission
+@bot.slash_command(guild_ids=guilds, description="Delete a record.")
+async def cancel(ctx, scode):
     # Find the submission in the queue db
     submission = None
     for sub in queue["submissions"]:
@@ -328,6 +330,11 @@ async def delete(ctx, scode):
         await ctx.respond(f"Submission {scode} was not found.")
         return
     
+    # Check if user is admin or submission is from user
+    if not (ctx.author.guild_permissions.administrator or ctx.author.id == submission['Uid']):
+        await ctx.respond("You can only cancel your own submission.")
+        return
+
     # remove submission from queue database
     queue["submissions"].remove(submission)
     queue["inqueue"] -= 1
@@ -339,11 +346,6 @@ async def delete(ctx, scode):
     await msg.delete()
 
     await ctx.respond(f"Submission {scode} deleted")
-
-@delete.error
-async def delete_error(ctx, error):
-    if isinstance(error, CheckFailure):
-        await ctx.respond("You're not an admin")
 
 
 #command for connecting accounts
