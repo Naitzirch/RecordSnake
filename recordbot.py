@@ -209,6 +209,7 @@ async def submit(ctx,
         "Uid": ctx.author.id,
         "IGN": user["IGN"],
         "forums": user["forums"],
+        "platform": platform.name,
         "GM": game,
         "message": record
     }
@@ -259,9 +260,17 @@ async def accept(ctx, scode, prevholder):
     await feedback_channel.send(f"✅ <@{submission['Uid']}> Your {submission['GM']} submission for \"{subMessage}\" has been accepted!{linkToSubmission}")
 
 
+    # Get platform emoji for in changelog
+    Emoji = "🤔"
+    match submission['platform']:
+        case "Java":
+            Emoji = "☕"
+        case "Bedrock":
+            Emoji = "<:bedrock:1016464470412886067>"
+
     # update the changelog
     changelog_channel = bot.get_channel(int(botInfo["changelogChannelID"]))
-    await changelog_channel.send(f"> {submission['GM']}\n> {subMessage}\n> \n> `{prevholder} -> {submission['IGN']}`\n> \n> {submission['submissionMessage']}")
+    await changelog_channel.send(f"> {Emoji} {submission['platform']}\n> {submission['GM']}\n> {subMessage}\n> \n> `{prevholder} -> {submission['IGN']}`\n> \n> {submission['submissionMessage']}")
 
     # Send reply to the reviewer that submitted the record
     await ctx.respond(f"Submission {scode} accepted")
