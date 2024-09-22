@@ -57,32 +57,40 @@ async def bedrock(ctx):
 
 @bot.slash_command(guild_ids=guilds, description="Get user info via Discord or Minecraft IGN (leave empty for your own info)")
 async def info(ctx,
-               user_name: Option(Member, "Discord name", required=False, name="discord"),
-               ign: Option(str, "Minecraft name", required=False)):
+               other_user: Option(Member, "Discord name", required=False, name="discord"),
+               java: Option(str, "Minecraft name", required=False),
+               bedrock: Option(str, "Minecraft name", required=False)):
     discord_id = ""
+    platform = ""
 
     # Get user info by looking in the db for discord id or Minecraft IGN
     user = None
-    if user_name:
-        user = get_user_info(str(user_name.id), users)
-    elif ign:
-        user = get_user_info_by_ign(ign, users)
+    if other_user:
+        user = get_user_info(str(other_user.id), users)
+    elif java:
+        platform = "java"
+        user = get_user_info_by_ign(platform, java, users)
+    elif bedrock:
+        platform = "bedrock"
+        user = get_user_info_by_ign(platform, bedrock, users)
     else:
         user = get_user_info(str(ctx.author.id), users)
 
-    if user == None and ign == None:
-        if user_name == None:
+    if user == None and java == None and bedrock == None:
+        if other_user == None:
             await ctx.respond("Please connect your account using `/connect` to view your stats!")
             return
         await ctx.respond("This person has not connected their account 🥲")
         return
 
     if user != None:
-        ign = user["IGN"].strip()
+        ign = user[platform].strip()
         discord_id = user["id"]
 
     # Get discord details of the user (In case we only knew the IGN)
-    display_name = ign
+    display_name = java
+    if platform == "bedrock":
+        display_name = bedrock
 
     forums = "Account not connected"
     disc_user = None
@@ -207,7 +215,7 @@ async def submit(ctx,
         "botMessage": submissionMessage.id,
         "submissionMessage": message_link,
         "Uid": ctx.author.id,
-        "IGN": user["IGN"],
+        "IGN": user[platform.name.lower()],
         "forums": user["forums"],
         "platform": platform.name,
         "GM": game,
@@ -259,18 +267,9 @@ async def accept(ctx, scode, prevholder):
     feedback_channel = bot.get_channel(int(botInfo["feedbackChannelID"]))
     await feedback_channel.send(f"✅ <@{submission['Uid']}> Your {submission['GM']} submission for \"{subMessage}\" has been accepted!{linkToSubmission}")
 
-
-    # Get platform emoji for in changelog
-    Emoji = "🤔"
-    match submission['platform']:
-        case "Java":
-            Emoji = "☕"
-        case "Bedrock":
-            Emoji = "<:bedrock:1016464470412886067>"
-
     # update the changelog
     changelog_channel = bot.get_channel(int(botInfo["changelogChannelID"]))
-    await changelog_channel.send(f"> {Emoji} {submission['platform']}\n> {submission['GM']}\n> {subMessage}\n> \n> `{prevholder} -> {submission['IGN']}`\n> \n> {submission['submissionMessage']}")
+    await changelog_channel.send(f"> {platform_emoji(submission['platform'])} {submission['platform']}\n> {submission['GM']}\n> {subMessage}\n> \n> `{prevholder} -> {submission['IGN']}`\n> \n> {submission['submissionMessage']}")
 
     # Send reply to the reviewer that submitted the record
     await ctx.respond(f"Submission {scode} accepted")
@@ -377,58 +376,47 @@ async def forums(ctx, forums_link: Option(str, "link to your forums page")):
     # Check if user already connected their account
     old_profile = get_user_info(str(ctx.author.id), users)
 
-    msg = "Successfully connected your account!"
+    msg = "Successfully connected your Forums account!"
     if old_profile is not None:
         user.update({"java": old_profile["java"]})
         user.update({"bedrock": old_profile["bedrock"]})
-        if old_profile["forums"] is not "":
+        if old_profile["forums"] != "":
             msg = "Successfully updated your account details."
         users.remove(old_profile)
 
     users.append(user)
+    db_json.save()
 
     await ctx.respond(msg)
 
 @connect.command(description="Connect your Discord Minecraft account.")
-async def minecraft(ctx, platform: Option(Enum('Platform', ['Java', 'Bedrock', 'Other']), "Platform type"), ign: Option(str, "Your in-game name")):
-    pass
+async def minecraft(ctx, platform: Option(Enum('Platform', ['Java', 'Bedrock']), "Platform type"), ign: Option(str, "Your in-game name")):
 
+    user = {
+        "id": str(ctx.author.id),
+        "forums": "",
+        "java": "",
+        "bedrock": ""
+    }
 
-# #command for connecting accounts
-# @bot.slash_command(guild_ids=guilds, description="Connect your Discord to your IGN and forums account.")
-# async def connect(ctx,
-#                   ign: Option(str, "Your ingame name"),
-#                   forums_link: Option(str, "link to your forums page")):
-    
-#     # Check if the right link was used
-#     if not forums_link[0:len(cubecraft_link)] == cubecraft_link:
-#         await ctx.respond("Please use the link to your members page, it looks like:\nhttps://www.cubecraft.net/members/naitzirch.375456/")
-#         return
+    # Check if user already connected their account
+    old_profile = get_user_info(str(ctx.author.id), users)
 
-#     user = {
-#         "id": str(ctx.author.id),
-#         "IGN": ign,
-#         "forums": forums_link
-#     }
+    msg = f"Successfully connected your {platform.name} account! " + platform_emoji(platform.name)
+    if old_profile is not None:
+        user.update({"forums": old_profile["forums"]})
+        user.update({"java": old_profile["java"]})
+        user.update({"bedrock": old_profile["bedrock"]})
+        if old_profile[platform.name.lower()] != "":
+            msg = f"Successfully updated your {platform.name} account details."
+        users.remove(old_profile)
 
-#     msg = "Successfully connected your account!"
+    user.update({platform.name.lower(): ign})
 
-#     # Check if user already connected their account
-#     old_profile = None
-#     for u in users:
-#         if u["id"] == str(ctx.author.id):
-#             old_profile = u
+    users.append(user)
+    db_json.save()
 
-#     # remove old details if found
-#     if old_profile is not None:
-#         users.remove(old_profile)
-#         msg = "Successfully updated your account details."
-
-#     users.append(user)
-#     db_json.save(indent=2)
-
-#     await ctx.respond(msg)
-
+    await ctx.respond(msg)
 
 
 # run the bot

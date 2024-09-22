@@ -19,12 +19,21 @@ def get_user_info(Uid, users):
             return user
     return None
 
-def get_user_info_by_ign(ign, users):
+def get_user_info_by_ign(platform, ign, users):
     for user in users:
-        if user["IGN"].lower().strip() == ign.lower():
+        if user[platform].lower().strip() == ign.lower():
             return user
     return None
 
+# Get platform emoji
+def platform_emoji(platform):
+    Emoji = "🤔"
+    match platform:
+        case "Java":
+            Emoji = "☕"
+        case "Bedrock":
+            Emoji = "<:bedrock:1016464470412886067>"
+    return Emoji
 
 # Try to access the google sheets document
 import os.path
