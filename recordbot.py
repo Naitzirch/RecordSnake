@@ -357,40 +357,77 @@ async def cancel(ctx, scode):
     await ctx.respond(f"Submission {scode} deleted")
 
 
-#command for connecting accounts
-@bot.slash_command(guild_ids=guilds, description="Connect your Discord to your IGN and forums account.")
-async def connect(ctx,
-                  ign: Option(str, "Your ingame name"),
-                  forums_link: Option(str, "link to your forums page")):
-    
+connect = bot.create_group("connect", "Connect your Discord to your IGN and forums account.", guilds)
+
+@connect.command(description="Connect your Discord to your CubeCraft forums account.")
+async def forums(ctx, forums_link: Option(str, "link to your forums page")):
+
     # Check if the right link was used
     if not forums_link[0:len(cubecraft_link)] == cubecraft_link:
         await ctx.respond("Please use the link to your members page, it looks like:\nhttps://www.cubecraft.net/members/naitzirch.375456/")
         return
-
+    
     user = {
         "id": str(ctx.author.id),
-        "IGN": ign,
-        "forums": forums_link
+        "forums": forums_link,
+        "java": "",
+        "bedrock": ""
     }
 
-    msg = "Successfully connected your account!"
-
     # Check if user already connected their account
-    old_profile = None
-    for u in users:
-        if u["id"] == str(ctx.author.id):
-            old_profile = u
+    old_profile = get_user_info(str(ctx.author.id), users)
 
-    # remove old details if found
+    msg = "Successfully connected your account!"
     if old_profile is not None:
+        user.update({"java": old_profile["java"]})
+        user.update({"bedrock": old_profile["bedrock"]})
+        if old_profile["forums"] is not "":
+            msg = "Successfully updated your account details."
         users.remove(old_profile)
-        msg = "Successfully updated your account details."
 
     users.append(user)
-    db_json.save(indent=2)
 
     await ctx.respond(msg)
+
+@connect.command(description="Connect your Discord Minecraft account.")
+async def minecraft(ctx, platform: Option(Enum('Platform', ['Java', 'Bedrock', 'Other']), "Platform type"), ign: Option(str, "Your in-game name")):
+    pass
+
+
+# #command for connecting accounts
+# @bot.slash_command(guild_ids=guilds, description="Connect your Discord to your IGN and forums account.")
+# async def connect(ctx,
+#                   ign: Option(str, "Your ingame name"),
+#                   forums_link: Option(str, "link to your forums page")):
+    
+#     # Check if the right link was used
+#     if not forums_link[0:len(cubecraft_link)] == cubecraft_link:
+#         await ctx.respond("Please use the link to your members page, it looks like:\nhttps://www.cubecraft.net/members/naitzirch.375456/")
+#         return
+
+#     user = {
+#         "id": str(ctx.author.id),
+#         "IGN": ign,
+#         "forums": forums_link
+#     }
+
+#     msg = "Successfully connected your account!"
+
+#     # Check if user already connected their account
+#     old_profile = None
+#     for u in users:
+#         if u["id"] == str(ctx.author.id):
+#             old_profile = u
+
+#     # remove old details if found
+#     if old_profile is not None:
+#         users.remove(old_profile)
+#         msg = "Successfully updated your account details."
+
+#     users.append(user)
+#     db_json.save(indent=2)
+
+#     await ctx.respond(msg)
 
 
 
