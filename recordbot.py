@@ -55,80 +55,73 @@ async def java(ctx):
 async def bedrock(ctx):
     await ctx.respond(f"<https://www.cubecraft.net/threads/cubecraft-book-of-world-records.344750/post-1535640>")
 
-@bot.slash_command(guild_ids=guilds, description="Get user info via Discord or Minecraft IGN (leave empty for your own info)")
-async def info(ctx,
-               other_user: Option(Member, "Discord name", required=False, name="discord"),
-               java: Option(str, "Minecraft name", required=False),
-               bedrock: Option(str, "Minecraft name", required=False)):
-    discord_id = ""
-    platform = ""
 
-    # Get user info by looking in the db for discord id or Minecraft IGN
+info = bot.create_group("info", "Get info about a player through discord or Minecraft.", guilds)
+
+@info.command(description="Get user info via Discord (leave empty for your own info)")
+async def disc(ctx, other_user: Option(Member, "Discord name", required=False, name="discord")):
+    discord_id = ""
+
+    # Get user info by looking in the db for discord id
     user = None
     if other_user:
         user = get_user_info(str(other_user.id), users)
-    elif java:
-        platform = "java"
-        user = get_user_info_by_ign(platform, java, users)
-    elif bedrock:
-        platform = "bedrock"
-        user = get_user_info_by_ign(platform, bedrock, users)
     else:
         user = get_user_info(str(ctx.author.id), users)
 
-    if user == None and java == None and bedrock == None:
+    if user == None:
         if other_user == None:
             await ctx.respond("Please connect your account using `/connect` to view your stats!")
             return
         await ctx.respond("This person has not connected their account 🥲")
         return
 
-    if user != None:
-        ign = user[platform].strip()
-        discord_id = user["id"]
-
-    # Get discord details of the user (In case we only knew the IGN)
-    display_name = java
-    if platform == "bedrock":
-        display_name = bedrock
-
-    forums = "Account not connected"
-    disc_user = None
-    if user is not None:
-        disc_user = bot.get_user(int(user["id"]))
-        forums = f"[Forums profile]({user['forums']})".replace("_", "\_")
-    if disc_user is not None:
-        display_name = disc_user.display_name
+    disc_user = bot.get_user(int(user["id"]))
+    forums = f"[Forums profile]({user["forums"]})".replace("_", "\_")
+    display_name = disc_user.display_name
 
     # Get external data of this player
     df = get_ext_player_data()
-    xpd = df.loc[df['Player'].str.lower() == ign.lower()]
+
+    # Filter the df based on platform. 3 cases: either both networks, java or bedrock
+    if user["java"] != "" and user["bedrock"] != "":
+        df = df.loc[df['Platform'].isin(['Java & Bedrock', ''])]
+        # Get row index of this player (we need the row below it as well in this case)
+        ri = df.index[(df['Player'] == user["java"]) & (df["Platform"] == "Java & Bedrock")].to_list()
+        xpd = df.loc[df['Player'] == user["java"]]
+        if ri:
+            xpd = df.loc[ri[0]:ri[0]+1, :]
+    elif user["java"] != "":
+        df = df.loc[df['Platform'].isin(['Java'])]
+        xpd = df.loc[df['Player'] == user["java"]]
+        xpd.loc[len(xpd)] = ['', '', '', '', '', '', '', ''] # append a second empty row for the "bedrock" part
+    else:
+        df = df.loc[df['Platform'].isin(['Bedrock'])]
+        xpd = df.loc[df['Player'] == user["bedrock"]]
+        xpd.loc[-1] = ['', '', '', '', '', '', '', ''] # append a second empty row for the "java" part
 
     description = ""
-    description += f"**Minecraft:** {ign}\n".replace("_", "\_")
-    if ' ' in ign:
-        platform = 'Bedrock'
-    else:
-        platform = 'Unknown'
+    description += f"**Java:** {user["java"]}\n".replace("_", "\_")
+    description += f"**Bedrock:** {user["bedrock"]}\n".replace("_", "\_")
 
     position = "_"
-    if len(xpd) == 1:
+    if len(xpd) == 2:
         platform = xpd['Platform'].values[0]
         position = xpd['Position'].values[0]
         records = xpd['Records'].values[0]
-        LCR = xpd['LCR'].values[0]
-        OCR = xpd['OCR'].values[0]
+        OCR = xpd['OCR'].values[0] + "\n" + xpd['OCR'].values[1]
+        LCR = xpd['LCR'].values[0] + "\n" + xpd['LCR'].values[1]
 
         if xpd['discord_id'].values[0] != '??':
             discord_id = xpd['discord_id'].values[0]
         
-        description += f"**Platform:** {platform}\n"
+        description += f"**Platforms:** {platform}\n"
         description += f"**Position:** # {position}\n"
         description += f"**Records:** {records}\n\n"
         description += f"**Latest Record:**\n{LCR}\n"
         description += f"**Oldest Record:**\n{OCR}\n\n"
     else:
-        description += f"**Platform:** {platform}\n"
+        description += f"**Platforms:** {platform}\n"
         description += f"**Records:** 0\n\n"
 
     description += f"{forums}"
