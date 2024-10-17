@@ -225,7 +225,7 @@ async def submit(ctx,
 # command for accepting a submission   
 @has_permissions(administrator=True)
 @bot.slash_command(guild_ids=guilds, description="Accept a record.")
-async def accept(ctx, scode, prevholder):
+async def accept(ctx, scode, prevholder, newholder: Option(str, "Only use this option if the submitter submitted for somebody else.", required=False)):
 
     # Find the submission in the queue db
     submission = None
@@ -269,8 +269,11 @@ async def accept(ctx, scode, prevholder):
             Emoji = "<:bedrock:1016464470412886067>"
 
     # update the changelog
+    new_holder = submission["IGN"]
+    if newholder:
+        new_holder = newholder
     changelog_channel = bot.get_channel(int(botInfo["changelogChannelID"]))
-    await changelog_channel.send(f"> {Emoji} {submission['platform']}\n> {submission['GM']}\n> {subMessage}\n> \n> `{prevholder} -> {submission['IGN']}`\n> \n> {submission['submissionMessage']}")
+    await changelog_channel.send(f"> {Emoji} {submission['platform']}\n> {submission['GM']}\n> {subMessage}\n> \n> `{prevholder} -> {new_holder}`\n> \n> {submission['submissionMessage']}")
 
     # Send reply to the reviewer that submitted the record
     await ctx.respond(f"Submission {scode} accepted")
