@@ -77,43 +77,46 @@ async def disc(ctx, other_user: Option(Member, "Discord name", required=False, n
         return
 
     disc_user = bot.get_user(int(user["id"]))
-    forums = f"[Forums profile]({user["forums"]})".replace("_", "\_")
+    forums = f"[Forums profile]({user['forums']})".replace("_", "\_")
     display_name = disc_user.display_name
 
     # Get external data of this player
     df = get_ext_player_data()
 
     # Filter the df based on platform. 3 cases: either both networks, java or bedrock
-    if user["java"] != "" and user["bedrock"] != "":
+    ign_j = user["java"]
+    ign_b = user["bedrock"]
+    platform = ""
+    xpd = pd.DataFrame()
+    if ign_j != "" and ign_b != "":
+        platform = "Java & Bedrock"
         df = df.loc[df['Platform'].isin(['Java & Bedrock', ''])]
         # Get row index of this player (we need the row below it as well in this case)
-        ri = df.index[(df['Player'] == user["java"]) & (df["Platform"] == "Java & Bedrock")].to_list()
-        xpd = df.loc[df['Player'] == user["java"]]
+        ri = df.index[(df['Player'].str.lower() == ign_j.lower()) & (df["Platform"] == "Java & Bedrock")].to_list()
         if ri:
             xpd = df.loc[ri[0]:ri[0]+1, :]
-    elif user["java"] != "":
+    elif ign_j != "":
+        platform = "Java"
         df = df.loc[df['Platform'].isin(['Java'])]
-        xpd = df.loc[df['Player'] == user["java"]]
+        xpd = df.loc[df['Player'].str.lower() == ign_j.lower()]
         xpd.loc[len(xpd)] = ['', '', '', '', '', '', '', ''] # append a second empty row for the "bedrock" part
-    else:
+    elif ign_b != "":
+        platform = "Bedrock"
         df = df.loc[df['Platform'].isin(['Bedrock'])]
-        xpd = df.loc[df['Player'] == user["bedrock"]]
-        xpd.loc[-1] = ['', '', '', '', '', '', '', ''] # append a second empty row for the "java" part
+        xpd = df.loc[df['Player'].str.lower() == ign_b.lower()]
+        xpd.loc[-1] = ['', '', '', '', '', '', '', ''] # prepend a second empty row for the "java" part
 
     description = ""
-    description += f"**Java:** {user["java"]}\n".replace("_", "\_")
-    description += f"**Bedrock:** {user["bedrock"]}\n".replace("_", "\_")
+    description += f"**Java:** {ign_j}\n".replace("_", "\_")
+    description += f"**Bedrock:** {ign_b}\n".replace("_", "\_")
 
     position = "_"
     if len(xpd) == 2:
         platform = xpd['Platform'].values[0]
-        position = xpd['Position'].values[0]
+        position = int(xpd['Position'].values[0])
         records = xpd['Records'].values[0]
         OCR = xpd['OCR'].values[0] + "\n" + xpd['OCR'].values[1]
         LCR = xpd['LCR'].values[0] + "\n" + xpd['LCR'].values[1]
-
-        if xpd['discord_id'].values[0] != '??':
-            discord_id = xpd['discord_id'].values[0]
         
         description += f"**Platforms:** {platform}\n"
         description += f"**Position:** # {position}\n"
@@ -145,9 +148,9 @@ async def disc(ctx, other_user: Option(Member, "Discord name", required=False, n
     embed.set_author(name="CCGRC", icon_url=ctx.guild.icon.url)
 
     if platform == 'Bedrock':
-        ign = 'bedrock'
+        ign_j = 'bedrock'
 
-    embed.set_thumbnail(url=f"https://mc-heads.net/head/{ign}")
+    embed.set_thumbnail(url=f"https://mc-heads.net/head/{ign_j.lower()}")
 
     if disc_user:
         embed.set_footer(text=f"{discord_id}", icon_url=disc_user.display_avatar)
@@ -160,7 +163,7 @@ async def disc(ctx, other_user: Option(Member, "Discord name", required=False, n
 # submission command
 @bot.slash_command(guild_ids=guilds, description="Submit your record, it should appear in the queue.")
 async def submit(ctx, 
-                 platform: Option(Enum('Platform', ['Java', 'Bedrock', 'Other']), "Platform type"),
+                 platform: Option(Enum('Platform', ['Java', 'Bedrock']), "Platform type"),
                  game: Option(str, "Eggwars, Skywars, etc."),
                  record: Option(str, "What record are you submitting for? Example: Most kills."), 
                  evidence: Option(str, description="Links go here. An image can be pasted or uploaded in the optional attachment field"),
@@ -171,29 +174,35 @@ async def submit(ctx,
         await ctx.respond("Use /connect to connect your account before making a submission.")
         return
     
+    platform_IGN = user[platform.name.lower()]
+    if platform_IGN == "":
+        await ctx.respond(f"You haven't linked your {platform.name} account yet!")
+        return
+    
     # Check if the queue isn't full
     if queue["inqueue"] >= 9999:
         await ctx.respond("Queue full, wait for submissions to be reviewed.")
         return
 
+    s_id = generate_random_id(queue)
+
     # Send a summary of the submission in the submission channel
-    ats_string = ""
     summary = f"> **Platform:** {platform.name}\n> **Game:** {game}\n> **Record:** {record}\n> **Evidence:**\n> {evidence}\n"
+    summary += f"Your submission will be reviewed! <@{ctx.author.id}>\n-# To cancel this submission use code: {s_id}"
     if attachment is not None:
-        interaction: discord.Interaction = await ctx.respond((summary + f"Your submission will be reviewed! <@{ctx.author.id}>"), file=await attachment.to_file())
+        interaction: discord.Interaction = await ctx.respond(summary, file=await attachment.to_file())
     else:
-        interaction: discord.Interaction = await ctx.respond(summary + f"Your submission will be reviewed! <@{ctx.author.id}>")
+        interaction: discord.Interaction = await ctx.respond(summary)
 
     # Get a link to the summary message
     message = await interaction.original_response()
     message_link = f"https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id}"
 
     # Create the message for in the queue
-    s_id = generate_random_id(queue)
 
     # Create the embed for in the queue
     embedVar = discord.Embed(title=f"New submission by {ctx.author.display_name}", description="", color=0xfecc52)
-    embedVar.add_field(name="Details", value=f"**IGN:** {user['IGN']}\n**Platform:** {platform.name}\n**Game:** {game}\n[{user['IGN']}'s forumes profile]({user['forums']})", inline=False)
+    embedVar.add_field(name="Details", value=f"**IGN:** {platform_IGN}\n**Platform:** {platform.name}\n**Game:** {game}\n[{platform_IGN}'s forums profile]({user['forums']})", inline=False)
     embedVar.add_field(name="Record", value=record, inline=False)
     embedVar.add_field(name=f"Evidence: {message_link}", value="", inline=False)
     embedVar.set_footer(text=f"Submission code: {s_id}")
@@ -208,7 +217,7 @@ async def submit(ctx,
         "botMessage": submissionMessage.id,
         "submissionMessage": message_link,
         "Uid": ctx.author.id,
-        "IGN": user[platform.name.lower()],
+        "IGN": platform_IGN,
         "forums": user["forums"],
         "platform": platform.name,
         "GM": game,
@@ -410,7 +419,6 @@ async def minecraft(ctx, platform: Option(Enum('Platform', ['Java', 'Bedrock']),
     db_json.save()
 
     await ctx.respond(msg)
-
 
 # run the bot
 bot.run(botInfo["token"])
