@@ -160,7 +160,7 @@ async def disc(ctx, other_user: Option(Member, "Discord name", required=False, n
 
 
 # submission command
-@bot.slash_command(guild_ids=guilds, description="Submit your record, it should appear in the queue.")
+@bot.slash_command(guild_ids=guilds, description="Submit your record, it should appear in the queue!")
 async def submit(ctx, 
                  platform: Option(Enum('Platform', ['Java', 'Bedrock']), "Platform type"),
                  game: Option(str, "Eggwars, Skywars, etc."),
@@ -331,12 +331,12 @@ async def deny_error(ctx, error):
         await ctx.respond("You're not an admin")
 
 # command for deleting a submission
-@bot.slash_command(guild_ids=guilds, description="Delete a record.")
-async def cancel(ctx, scode):
+@bot.slash_command(guild_ids=guilds, description="Remove your submission from the queue")
+async def cancel(ctx, scode: Option(int, "Submission code, you can find it at the bottom of your submission.")):
     # Find the submission in the queue db
     submission = None
     for sub in queue["submissions"]:
-        if sub["id"] == scode:
+        if int(sub["id"]) == scode:
             submission = sub
 
     # If the submission is not found
@@ -395,7 +395,7 @@ async def forums(ctx, forums_link: Option(str, "link to your forums page")):
 
     await ctx.respond(msg)
 
-@connect.command(description="Connect your Discord Minecraft account.")
+@connect.command(description="Connect your Discord to your Minecraft account.")
 async def minecraft(ctx, platform: Option(Enum('Platform', ['Java', 'Bedrock']), "Platform type"), ign: Option(str, "Your in-game name")):
 
     user = {
