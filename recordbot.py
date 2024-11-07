@@ -78,7 +78,6 @@ async def disc(ctx, other_user: Option(Member, "Discord name", required=False, n
 
     disc_user = bot.get_user(int(user["id"]))
     forums = f"[Forums profile]({user['forums']})".replace("_", "\_")
-    display_name = disc_user.display_name
 
     # Get external data of this player
     df = get_ext_player_data()
@@ -140,7 +139,7 @@ async def disc(ctx, other_user: Option(Member, "Discord name", required=False, n
         colour = discord.Colour.orange()
 
     embed = discord.Embed(
-        title=f"{display_name}'s user info",
+        title=f"{disc_user.display_name}'s user info",
         description=description,
         color=colour
     )
@@ -201,8 +200,9 @@ async def submit(ctx,
     # Create the message for in the queue
 
     # Create the embed for in the queue
-    embedVar = discord.Embed(title=f"New submission by {ctx.author.display_name}", description="", color=0xfecc52)
-    embedVar.add_field(name="Details", value=f"**IGN:** {platform_IGN}\n**Platform:** {platform.name}\n**Game:** {game}\n[{platform_IGN}'s forums profile]({user['forums']})", inline=False)
+    description = f"<@{ctx.author.id}>\n**IGN:** {platform_IGN}\n**Platform:** {platform.name}\n**Game:** {game}\n[{platform_IGN}'s forums profile]({user['forums']})"
+    embedVar = discord.Embed(title=f"New submission from:", description=description, color=0xfecc52)
+    #embedVar.add_field(name="Details", value=f"", inline=False)
     embedVar.add_field(name="Record", value=record, inline=False)
     embedVar.add_field(name=f"Evidence: {message_link}", value="", inline=False)
     embedVar.set_footer(text=f"Submission code: {s_id}")

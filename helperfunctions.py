@@ -49,8 +49,8 @@ SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
 
 # The ID and range of a sample spreadsheet.
 SHEET_URL = "https://docs.google.com/spreadsheets/d/1yGtbKkYQSf4KGBZd_uHJ5m52hVLIgdI59o3vqmN0F2Q/edit?usp=sharing"
-SAMPLE_SPREADSHEET_ID = "151TKeK_invwaoNT7JLfcb27eLaAWLZVB7Xj_F7wjzDg"
-SAMPLE_RANGE_NAME = "Records!B5:J270"
+SAMPLE_SPREADSHEET_ID = "1yGtbKkYQSf4KGBZd_uHJ5m52hVLIgdI59o3vqmN0F2Q"
+SAMPLE_RANGE_NAME = "Records!B5:J400"
 
 def get_ext_player_data():
     """Get player data from the google sheet leaderboard
