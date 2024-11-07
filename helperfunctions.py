@@ -19,12 +19,21 @@ def get_user_info(Uid, users):
             return user
     return None
 
-def get_user_info_by_ign(ign, users):
+def get_user_info_by_ign(platform, ign, users):
     for user in users:
-        if user["IGN"].lower().strip() == ign.lower():
+        if user[platform].lower().strip() == ign.lower():
             return user
     return None
 
+# Get platform emoji
+def platform_emoji(platform):
+    Emoji = "🤔"
+    match platform:
+        case "Java":
+            Emoji = "☕"
+        case "Bedrock":
+            Emoji = "<:bedrock:1016464470412886067>"
+    return Emoji
 
 # Try to access the google sheets document
 import os.path
@@ -41,7 +50,7 @@ SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
 # The ID and range of a sample spreadsheet.
 SHEET_URL = "https://docs.google.com/spreadsheets/d/1yGtbKkYQSf4KGBZd_uHJ5m52hVLIgdI59o3vqmN0F2Q/edit?usp=sharing"
 SAMPLE_SPREADSHEET_ID = "1yGtbKkYQSf4KGBZd_uHJ5m52hVLIgdI59o3vqmN0F2Q"
-SAMPLE_RANGE_NAME = "Records!B5:J270"
+SAMPLE_RANGE_NAME = "Records!B5:J400"
 
 def get_ext_player_data():
     """Get player data from the google sheet leaderboard
