@@ -275,7 +275,7 @@ async def accept(ctx, scode, prevholder, newholder: Option(str, "Only use this o
         new_holder = newholder
     changelog_channel = bot.get_channel(int(botInfo["changelogChannelID"]))
 
-    await changelog_channel.send(f"> {platform_emoji(submission['platform'])} {submission['platform']}\n> {submission['GM']}\n> {subMessage}\n> \n> `{prevholder} -> {submission['IGN']}`\n> \n> {submission['submissionMessage']}")
+    await changelog_channel.send(f"> {platform_emoji(submission['platform'])} {submission['platform']}\n> {submission['GM']}\n> {subMessage}\n> \n> `{prevholder} -> {new_holder}`\n> \n> {submission['submissionMessage']}")
 
     # Send reply to the reviewer that submitted the record
     await ctx.respond(f"Submission {scode} accepted")
