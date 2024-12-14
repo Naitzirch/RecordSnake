@@ -89,20 +89,21 @@ async def disc(ctx, other_user: Option(Member, "Discord name", required=False, n
     xpd = pd.DataFrame()
     if ign_j != "" and ign_b != "":
         platform = "Java & Bedrock"
-        df = df.loc[df['Platform'].isin(['Java & Bedrock', ''])]
+        df_temp = df.loc[df['Platform'].isin(['Java & Bedrock', ''])]
         # Get row index of this player (we need the row below it as well in this case)
-        ri = df.index[(df['Player'].str.lower() == ign_j.lower()) & (df["Platform"] == "Java & Bedrock")].to_list()
+        ri = df_temp.index[(df_temp['Player'].str.lower() == ign_j.lower()) & (df_temp["Platform"] == "Java & Bedrock")].to_list()
         if ri:
-            xpd = df.loc[ri[0]:ri[0]+1, :]
-    elif ign_j != "":
+            xpd = df_temp.loc[ri[0]:ri[0]+1, :]
+    if ign_j != "" and xpd.empty:
         platform = "Java"
-        df = df.loc[df['Platform'].isin(['Java'])]
-        xpd = df.loc[df['Player'].str.lower() == ign_j.lower()]
+        df_temp = df.loc[df['Platform'].isin(['Java'])]
+        xpd = df_temp.loc[df_temp['Player'].str.lower() == ign_j.lower()]
         xpd.loc[len(xpd)] = ['', '', '', '', '', '', '', ''] # append a second empty row for the "bedrock" part
-    elif ign_b != "":
+        print(xpd)
+    if ign_b != "" and xpd.empty:
         platform = "Bedrock"
-        df = df.loc[df['Platform'].isin(['Bedrock'])]
-        xpd = df.loc[df['Player'].str.lower() == ign_b.lower()]
+        df_temp = df.loc[df['Platform'].isin(['Bedrock'])]
+        xpd = df_temp.loc[df_temp['Player'].str.lower() == ign_b.lower()]
         xpd.loc[-1] = ['', '', '', '', '', '', '', ''] # prepend a second empty row for the "java" part
 
     description = ""
