@@ -99,8 +99,7 @@ async def disc(ctx, other_user: Option(Member, "Discord name", required=False, n
         df_temp = df.loc[df['Platform'].isin(['Java'])]
         xpd = df_temp.loc[df_temp['Player'].str.lower() == ign_j.lower()]
         xpd.loc[len(xpd)] = ['', '', '', '', '', '', '', ''] # append a second empty row for the "bedrock" part
-        print(xpd)
-    if ign_b != "" and xpd.empty:
+    if ign_b != "" and (xpd.empty or xpd["Position"].values[0] == ""):
         platform = "Bedrock"
         df_temp = df.loc[df['Platform'].isin(['Bedrock'])]
         xpd = df_temp.loc[df_temp['Player'].str.lower() == ign_b.lower()]
