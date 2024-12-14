@@ -146,7 +146,7 @@ async def disc(ctx, other_user: Option(Member, "Discord name", required=False, n
  
     embed.set_author(name="CCGRC", icon_url=ctx.guild.icon.url)
 
-    if platform == 'Bedrock':
+    if ign_j == '':
         ign_j = 'bedrock'
 
     embed.set_thumbnail(url=f"https://mc-heads.net/head/{ign_j.lower()}")
