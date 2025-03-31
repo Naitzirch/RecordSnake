@@ -6,6 +6,8 @@ from discord.member import Member
 
 from simplejsondb import Database
 
+import requests
+
 from enum import Enum
 
 from helperfunctions import *
@@ -189,7 +191,13 @@ async def submit(ctx,
     summary = f"> **Platform:** {platform.name}\n> **Game:** {game}\n> **Record:** {record}\n> **Evidence:**\n> {evidence}\n"
     summary += f"Your submission will be reviewed! <@{ctx.author.id}>\n-# To cancel this submission use code: {s_id}"
     if attachment is not None:
-        interaction: discord.Interaction = await ctx.respond(summary, file=await attachment.to_file())
+        try:
+            result = await attachment.to_file()
+        except Exception as e:
+            print(f"Error: {e}")
+        else:
+            interaction: discord.Interaction = await ctx.respond(summary, file=result)
+            print("Function executed successfully")
     else:
         interaction: discord.Interaction = await ctx.respond(summary)
 
@@ -423,6 +431,21 @@ async def minecraft(ctx, platform: Option(Enum('Platform', ['Java', 'Bedrock']),
     db_json.save()
 
     await ctx.respond(msg)
+
+# ping
+@bot.slash_command(guild_ids=guilds, description="👀")
+async def funny(ctx):
+    # Perform a GET request to the API
+    response = requests.get("https://icanhazdadjoke.com/", headers={"Accept": "application/json"})
+
+    message = ""
+    # Check if the request was successful
+    if response.status_code == 200:
+        joke = response.json().get("joke")
+        message = joke
+    else:
+        message = f"Failed to fetch a joke. Status code: {response.status_code}"
+    await ctx.respond(message)
 
 # run the bot
 bot.run(botInfo["token"])
