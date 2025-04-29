@@ -79,6 +79,7 @@ async def disc(ctx, other_user: Option(Member, "Discord name", required=False, n
         return
 
     disc_user = bot.get_user(int(user["id"]))
+    guild_member = ctx.guild.get_member(int(user["id"]))
     forums = f"[Forums profile]({user['forums']})".replace("_", "\_")
 
     # Get external data of this player
@@ -130,9 +131,10 @@ async def disc(ctx, other_user: Option(Member, "Discord name", required=False, n
 
     description += f"{forums}"
 
+    print()
 
     # Fancy colours for top 3
-    colour = discord.Colour.blurple()
+    colour = guild_member.roles[-1].colour
     if position == 1:
         colour = discord.Colour.gold()
     if position == 2:
