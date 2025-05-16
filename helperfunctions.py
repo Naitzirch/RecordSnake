@@ -35,6 +35,17 @@ def platform_emoji(platform):
             Emoji = "<:bedrock:1016464470412886067>"
     return Emoji
 
+# Return a string that is a link to the user's forums profile if it exists
+def forums_link(user, IGN=""):
+    forums = "This person has not linked their forums account."
+    if user['forums']:
+        if IGN:
+            forums = f"[{IGN}'s Forums profile]({user['forums']})".replace("_", "\_")
+        else:
+            forums = f"[Forums profile]({user['forums']})".replace("_", "\_")
+    return forums
+
+
 # Try to access the google sheets document
 import os.path
 

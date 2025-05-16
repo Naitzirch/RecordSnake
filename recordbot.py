@@ -80,7 +80,7 @@ async def disc(ctx, other_user: Option(Member, "Discord name", required=False, n
 
     disc_user = bot.get_user(int(user["id"]))
     guild_member = ctx.guild.get_member(int(user["id"]))
-    forums = f"[Forums profile]({user['forums']})".replace("_", "\_")
+    forums = forums_link(user)
 
     # Get external data of this player
     df = get_ext_player_data()
@@ -210,7 +210,7 @@ async def submit(ctx,
     # Create the message for in the queue
 
     # Create the embed for in the queue
-    description = f"<@{ctx.author.id}>\n**IGN:** {platform_IGN}\n**Platform:** {platform.name}\n**Game:** {game}\n[{platform_IGN}'s forums profile]({user['forums']})"
+    description = f"<@{ctx.author.id}>\n**IGN:** {platform_IGN}\n**Platform:** {platform.name}\n**Game:** {game}\n{forums_link(user, platform_IGN)}"
     embedVar = discord.Embed(title=f"New submission from:", description=description, color=0xfecc52)
     #embedVar.add_field(name="Details", value=f"", inline=False)
     embedVar.add_field(name="Record", value=record, inline=False)
