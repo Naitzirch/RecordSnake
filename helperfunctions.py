@@ -1,6 +1,11 @@
 import random
 import pandas as pd
+import hashlib
 
+# Create a hash id from the platform, game and record
+def get_hash(a,b,c):
+    base = f"{a}|{b}|{c}"
+    return "#" + hashlib.sha256(base.encode()).hexdigest()[:12]  # short, still safe
 
 # Generate a random number so long we find the random number in the submissions
 def generate_random_id(queue):

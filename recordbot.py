@@ -8,8 +8,6 @@ from simplejsondb import Database
 
 from enum import Enum
 
-from helperfunctions import *
-
 intents = discord.Intents.default()
 intents.members = True
  
@@ -120,6 +118,21 @@ from commands.connect_minecraft import minecraft_impl
 async def minecraft(ctx, platform: Option(Enum('Platform', ['Java', 'Bedrock']), "Platform type"), ign: Option(str, "Your in-game name")):
     await minecraft_impl(ctx, platform, ign, users, db_json)
 
+record_group = bot.create_group("record", "Modify the record database.", guilds)
+
+from commands.record_register import register_impl
+@record_group.command(guild_ids=guilds)
+async def register(ctx: discord.ApplicationContext, 
+                   platform: Option(Enum('Platform', ['Java', 'Bedrock']), "Platform type"),
+                   game: Option(str, "Eggwars, Skywars, etc."),
+                   record: Option(str, "Hi"),
+                   evidence=""):
+    await register_impl(ctx, bot, platform, game, record, evidence)
+
+from commands.record_remove import remove_impl
+@record_group.command(guild_ids=guilds)
+async def remove(ctx: discord.ApplicationContext, id):
+    await remove_impl(ctx, id)
 
 # run the bot
 bot.run(botInfo["token"])
