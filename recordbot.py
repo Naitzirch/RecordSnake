@@ -131,8 +131,8 @@ async def register(ctx: discord.ApplicationContext,
                    record=Option(str, "e.g. Most kills, Fastes win"),
                    mode=Option(str, "Solo, Easy, etc.", default=""),
                    username=Option(str, "discord/mc", default=""),
-                   evidence=Option(str, "Evidence message id", default="")):
-    await register_impl(ctx, bot, platform, game, record, mode, username, evidence, record_db_json, users, records)
+                   evidence_link=Option(str, "Evidence message link", default="")):
+    await register_impl(ctx, bot, platform, game, record, mode, username, evidence_link, db_json, record_db_json, users, records)
 
 from commands.record_remove import remove_impl
 @record_group.command(guild_ids=guilds)
