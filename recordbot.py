@@ -14,8 +14,10 @@ intents.members = True
 # Read info from json database
 db_json = Database("db.json", default=dict())
 queue_json = Database("queue.json", default=dict())
+record_db_json = Database("record_db.json", default=dict())
 db = db_json.data
 queue = queue_json.data
+record_db = record_db_json.data
 
 
 bot = discord.Bot(intents=intents)
@@ -28,6 +30,7 @@ leaderboard.setup(bot)
 botInfo = db["botInfo"]
 users   = db["users"]
 guilds  = botInfo["guilds"]
+records = record_db["records"]
 cubecraft_link = "https://www.cubecraft.net/members/"
 
 
@@ -61,25 +64,25 @@ info = bot.create_group("info", "Get info about a player through discord or Mine
 
 from commands.info_disc import disc_impl
 @info.command(description="Get user info via Discord (leave empty for your own info)")
-async def disc(ctx, other_user: Option(Member, "Discord name", required=False, name="discord")):
+async def disc(ctx, other_user=Option(Member, "Discord name", required=False, name="discord")):
     await disc_impl(ctx, bot, other_user, users)
 
 # command for submitting a record
 from commands.submit import submit_impl
 @bot.slash_command(guild_ids=guilds, description="Submit your record, it should appear in the queue!")
 async def submit(ctx, 
-                 platform: Option(Enum('Platform', ['Java', 'Bedrock']), "Platform type"),
-                 game: Option(str, "Eggwars, Skywars, etc."),
-                 record: Option(str, "What record are you submitting for? Example: Most kills."), 
-                 evidence: Option(str, description="Links go here. An image can be pasted or uploaded in the optional attachment field"),
-                 attachment: Option(Attachment, description="Image or video", required=False)):
+                 platform=Option(Enum('Platform', ['Java', 'Bedrock']), "Platform type"),
+                 game=Option(str, "Eggwars, Skywars, etc."),
+                 record=Option(str, "What record are you submitting for? Example: Most kills."), 
+                 evidence=Option(str, description="Links go here. An image can be pasted or uploaded in the optional attachment field"),
+                 attachment=Option(Attachment, description="Image or video", required=False)):
     await submit_impl(ctx, bot, platform, game, record, evidence, attachment, botInfo, users, db_json, queue_json, queue)
 
 # command for accepting a submission
 from commands.accept import accept_impl 
 @has_permissions(administrator=True)
 @bot.slash_command(guild_ids=guilds, description="Accept a record.")
-async def accept(ctx, scode, prevholder, newholder: Option(str, "Only use this option if the submitter submitted for somebody else.", required=False)):
+async def accept(ctx, scode, prevholder, newholder=Option(str, "Only use this option if the submitter submitted for somebody else.", required=False)):
     await accept_impl(ctx, bot, scode, prevholder, newholder, botInfo, queue_json, queue)
 
 @accept.error
@@ -102,32 +105,34 @@ async def deny_error(ctx, error):
 # command for deleting a submission
 from commands.cancel import cancel_impl
 @bot.slash_command(guild_ids=guilds, description="Remove your submission from the queue")
-async def cancel(ctx, scode: Option(int, "Submission code, you can find it at the bottom of your submission.")):
-    await cancel_impl()
+async def cancel(ctx, scode=Option(int, "Submission code, you can find it at the bottom of your submission.")):
+    await cancel_impl(ctx, bot, scode, botInfo, queue_json, queue)
 
 
 connect = bot.create_group("connect", "Connect your Discord to your IGN and forums account.", guilds)
 
 from commands.connect_forums import forums_impl
 @connect.command(description="Connect your Discord to your CubeCraft forums account.")
-async def forums(ctx, forums_link: Option(str, "link to your forums page")):
+async def forums(ctx, forums_link=Option(str, "link to your forums page")):
     await forums_impl(ctx, forums_link, users, db_json, cubecraft_link)
 
 from commands.connect_minecraft import minecraft_impl
 @connect.command(description="Connect your Discord to your Minecraft account.")
-async def minecraft(ctx, platform: Option(Enum('Platform', ['Java', 'Bedrock']), "Platform type"), ign: Option(str, "Your in-game name")):
+async def minecraft(ctx, platform=Option(Enum('Platform', ['Java', 'Bedrock']), "Platform type"), ign=Option(str, "Your in-game name")):
     await minecraft_impl(ctx, platform, ign, users, db_json)
 
 record_group = bot.create_group("record", "Modify the record database.", guilds)
 
 from commands.record_register import register_impl
-@record_group.command(guild_ids=guilds)
+@record_group.command(guild_ids=guilds, description="Add a record to the database")
 async def register(ctx: discord.ApplicationContext, 
-                   platform: Option(Enum('Platform', ['Java', 'Bedrock']), "Platform type"),
-                   game: Option(str, "Eggwars, Skywars, etc."),
-                   record: Option(str, "Hi"),
-                   evidence=""):
-    await register_impl(ctx, bot, platform, game, record, evidence)
+                   platform=Option(Enum('Platform', ['Java', 'Bedrock']), "Platform type"),
+                   game=Option(str, "Eggwars, Skywars, etc."),
+                   record=Option(str, "e.g. Most kills, Fastes win"),
+                   mode=Option(str, "Solo, Easy, etc.", default=""),
+                   username=Option(str, "discord/mc", default=""),
+                   evidence=Option(str, "Evidence message id", default="")):
+    await register_impl(ctx, bot, platform, game, record, mode, username, evidence, record_db_json, users, records)
 
 from commands.record_remove import remove_impl
 @record_group.command(guild_ids=guilds)
