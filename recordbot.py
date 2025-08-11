@@ -12,9 +12,9 @@ intents = discord.Intents.default()
 intents.members = True
  
 # Read info from json database
-db_json = Database("db.json", default=dict())
-queue_json = Database("queue.json", default=dict())
-record_db_json = Database("record_db.json", default=dict())
+db_json = Database("database/db.json", default=dict())
+queue_json = Database("database/queue.json", default=dict())
+record_db_json = Database("database/record_db.json", default=dict())
 db = db_json.data
 queue = queue_json.data
 record_db = record_db_json.data

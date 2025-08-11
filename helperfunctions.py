@@ -19,10 +19,7 @@ def generate_random_id(queue):
     return s_id
 
 def get_user_info(Uid, users):
-    for user in users:
-        if user["id"] == Uid:
-            return user
-    return None
+    return users.get(Uid)
 
 def get_user_info_by_ign(platform, ign, users):
     for user in users:
@@ -44,10 +41,7 @@ def platform_emoji(platform):
 def forums_link(user, IGN=""):
     forums = "This person has not linked their forums account."
     if user['forums']:
-        if IGN:
-            forums = f"[{IGN}'s Forums profile]({user['forums']})".replace("_", "\_")
-        else:
-            forums = f"[Forums profile]({user['forums']})".replace("_", "\_")
+        forums = f"[Forums profile]({user['forums']})".replace("_", "\_")
     return forums
 
 
@@ -77,8 +71,8 @@ def get_ext_player_data():
     df = pd.DataFrame()
     creds = None
     # The file token.json stores the user's access and refresh tokens
-    if os.path.exists("token.json"):
-        creds = Credentials.from_authorized_user_file("token.json", SCOPES)
+    if os.path.exists("database/login/token.json"):
+        creds = Credentials.from_authorized_user_file("database/login/token.json", SCOPES)
     # If there are no (valid) credentials available, tell the user to log in.
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:

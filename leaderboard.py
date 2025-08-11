@@ -6,7 +6,7 @@ import numpy as np
 from helperfunctions import *
 
 from simplejsondb import Database
-db_json = Database("db.json", default=dict())
+db_json = Database("database/db.json", default=dict())
 db = db_json.data
 botInfo = db["botInfo"]
 guilds  = botInfo["guilds"]

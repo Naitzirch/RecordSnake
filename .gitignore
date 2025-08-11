@@ -1,5 +1,6 @@
 *.json
 exclude/
+database/
 .vscode/
 venv*/
 __pycache__/
