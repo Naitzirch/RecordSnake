@@ -8,17 +8,18 @@ from simplejsondb import Database
 
 from enum import Enum
 
+from helperfunctions import get_subkeys
+
 intents = discord.Intents.default()
 intents.members = True
  
 # Read info from json database
 db_json = Database("database/db.json", default=dict())
 queue_json = Database("database/queue.json", default=dict())
-record_db_json = Database("database/record_db.json", default=dict())
+parkour_db_json = Database("database/parkour_db.json", default=dict())
 db = db_json.data
 queue = queue_json.data
-record_db = record_db_json.data
-
+parkour_db = parkour_db_json.data
 
 bot = discord.Bot(intents=intents)
 
@@ -30,7 +31,7 @@ leaderboard.setup(bot)
 botInfo = db["botInfo"]
 users   = db["users"]
 guilds  = botInfo["guilds"]
-records = record_db["records"]
+
 cubecraft_link = "https://www.cubecraft.net/members/"
 
 
@@ -109,6 +110,7 @@ async def cancel(ctx, scode=Option(int, "Submission code, you can find it at the
     await cancel_impl(ctx, bot, scode, botInfo, queue_json, queue)
 
 
+# Connect group
 connect = bot.create_group("connect", "Connect your Discord to your IGN and forums account.", guilds)
 
 from commands.connect_forums import forums_impl
@@ -121,23 +123,35 @@ from commands.connect_minecraft import minecraft_impl
 async def minecraft(ctx, platform=Option(Enum('Platform', ['Java', 'Bedrock']), "Platform type"), ign=Option(str, "Your in-game name")):
     await minecraft_impl(ctx, platform, ign, users, db_json)
 
-record_group = bot.create_group("record", "Modify the record database.", guilds)
+# Parkour group
+parkour = bot.create_group("parkour", "Modify the record database.", guilds)
 
-from commands.record_register import register_impl
-@record_group.command(guild_ids=guilds, description="Add a record to the database")
-async def register(ctx: discord.ApplicationContext, 
-                   platform=Option(Enum('Platform', ['Java', 'Bedrock']), "Platform type"),
-                   game=Option(str, "Eggwars, Skywars, etc."),
-                   record=Option(str, "e.g. Most kills, Fastes win"),
-                   mode=Option(str, "Solo, Easy, etc.", default=""),
-                   username=Option(str, "discord/mc", default=""),
+async def get_types(ctx: discord.AutocompleteContext):
+    platform = ctx.options['platform']
+    mode = ctx.options['mode']
+    map_name = ctx.options['map']
+    
+    path = platform # for modes (final else case)
+    if map_name != '' and map_name is not None: # for level numbers
+        path =  ".".join((platform, mode, map_name))
+    elif mode != '': # for maps
+        path = ".".join((platform, mode))
+
+    return get_subkeys(parkour_db, path)
+
+from commands.parkour_register import register_impl
+@parkour.command(guild_ids=guilds, description="Add a record to the database")
+async def register(ctx: discord.ApplicationContext,
+                   platform=Option(str, "Platform type", choices=['Java', 'Bedrock']),
+                   mode=Option(str, "Easy, Medium, ...", autocomplete=discord.utils.basic_autocomplete(get_types)),
+                   map_name=Option(str, "Name of the map", name="map", autocomplete=discord.utils.basic_autocomplete(get_types)),
+                   level=Option(int, "Level of the map", autocomplete=discord.utils.basic_autocomplete(get_types)),
+                   discord_id=Option(str, "Discord", default=""),
+                   value=Option(int, "Time in seconds", default=0),
                    evidence_link=Option(str, "Evidence message link", default="")):
-    await register_impl(ctx, bot, platform, game, record, mode, username, evidence_link, db_json, record_db_json, users, records)
+    await register_impl(ctx, bot, platform, mode, map_name, level, value, discord_id, evidence_link, db_json, parkour_db_json, users)
 
-from commands.record_remove import remove_impl
-@record_group.command(guild_ids=guilds)
-async def remove(ctx: discord.ApplicationContext, id):
-    await remove_impl(ctx, id)
+
 
 # run the bot
 bot.run(botInfo["token"])
