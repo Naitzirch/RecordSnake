@@ -157,5 +157,6 @@ async def accept_error(ctx, error):
     if isinstance(error, CheckFailure):
         await ctx.respond("You're not an admin")
 
+
 # run the bot
 bot.run(botInfo["token"])
