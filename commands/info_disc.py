@@ -2,14 +2,10 @@ import discord
 from helperfunctions import *
 
 async def disc_impl(ctx, bot, other_user, users):
-    discord_id = ""
+    discord_id = other_user.id if other_user else ctx.author.id # gives int type id
 
     # Get user info by looking in the db for discord id
-    user = None
-    if other_user:
-        user = get_user_info(str(other_user.id), users)
-    else:
-        user = get_user_info(str(ctx.author.id), users)
+    user = get_user_info(str(discord_id), users)
 
     if user == None:
         if other_user == None:
@@ -18,8 +14,8 @@ async def disc_impl(ctx, bot, other_user, users):
         await ctx.respond("This person has not connected their account 🥲")
         return
 
-    disc_user = bot.get_user(int(user["id"]))
-    guild_member = ctx.guild.get_member(int(user["id"]))
+    disc_user = bot.get_user(discord_id)
+    guild_member = ctx.guild.get_member(discord_id)
     forums = forums_link(user)
 
     # Get external data of this player
