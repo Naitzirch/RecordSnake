@@ -140,6 +140,7 @@ async def get_types(ctx: discord.AutocompleteContext):
     return get_subkeys(parkour_db, path)
 
 from commands.parkour_register import register_impl
+@has_permissions(administrator=True)
 @parkour.command(guild_ids=guilds, description="Add a record to the database")
 async def register(ctx: discord.ApplicationContext,
                    platform=Option(str, "Platform type", choices=['Java', 'Bedrock']),
@@ -151,6 +152,10 @@ async def register(ctx: discord.ApplicationContext,
                    evidence_link=Option(str, "Evidence message link", default="")):
     await register_impl(ctx, bot, platform, mode, map_name, level, value, discord_id, evidence_link, db_json, parkour_db_json, users)
 
+@register.error
+async def accept_error(ctx, error):
+    if isinstance(error, CheckFailure):
+        await ctx.respond("You're not an admin")
 
 
 # run the bot
