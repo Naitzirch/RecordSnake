@@ -1,21 +1,42 @@
 from helperfunctions import get_user_info
 from helperfunctions import make_path
 
-async def register_impl(ctx, bot, platform, mode, map_name, level, value, discord_id, evidence_link, db_json, parkour_db_json, users):
+async def register_impl(ctx, bot, platform, mode, map_name, level, discord_id, value, evidence_link, db_json, parkour_db_json, users):
     parkour_db = parkour_db_json.data
 
     response_string = "Added new record:"
-    evidence_id = evidence_link[29:] # remove discord domain part
-
+    
     # In case the discord tag was used as input, extract the id
     if discord_id[:2] == "<@":
         discord_id = discord_id[2:-1]
+    
+    # convert value in format mm:ss:ttt to thousands of a second
+    # Example: "01:23:456" -> 1*60*1000 + 23*1000 + 456 = 83456
+    try:
+        minutes, seconds, millis = value.split(":")
+        total_millis = int(minutes) * 60 * 1000 + int(seconds) * 1000 + int(millis)
+        value = total_millis
+    except Exception: # If format is invalid, inform the user
+        await ctx.respond("Invalid time format, use mm:ss:ttt e.g. 01:23:456 for 1 minute 23 seconds and 456 thousands", ephemeral=True)
+        return
+
+    evidence_id = ""
+    time_stamp = ""
+    if evidence_link:
+        evidence_id = evidence_link[29:] # remove discord domain part
+        # Get evidence time-stamp
+        id_list = evidence_id.split("/")
+        evi_channel = bot.get_channel(int(id_list[1]))
+        msg = await evi_channel.fetch_message(int(id_list[2]))
+        time_stamp = msg.created_at.isoformat()
+
 
     # create record object to store
     parkour_record = {
         "record_holder": discord_id,
         "value": value,
-        "evidence": evidence_id
+        "evidence": evidence_id,
+        "time": time_stamp
     }
     
     # Traverse and create missing keys
