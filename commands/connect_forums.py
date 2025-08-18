@@ -22,6 +22,6 @@ async def forums_impl(ctx, forums_link, users, db_json, cubecraft_link):
             msg = "Successfully updated your account details."
 
     users[str(ctx.author.id)] = user
-    db_json.save(indent=4)
+    db_json.save()
 
     await ctx.respond(msg)

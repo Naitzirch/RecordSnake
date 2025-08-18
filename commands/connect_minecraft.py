@@ -10,7 +10,6 @@ async def minecraft_impl(ctx, platform, ign, users, db_json):
     # Check if user already connected their account
     old_profile = get_user_info(str(ctx.author.id), users)
 
-    print(old_profile)
 
     msg = f"Successfully connected your {platform.name} account! " + platform_emoji(platform.name)
     if old_profile is not None:
@@ -23,6 +22,6 @@ async def minecraft_impl(ctx, platform, ign, users, db_json):
     user[platform.name.lower()] = ign
 
     users[str(ctx.author.id)] = user
-    db_json.save(indent=4)
+    db_json.save()
 
     await ctx.respond(msg)
