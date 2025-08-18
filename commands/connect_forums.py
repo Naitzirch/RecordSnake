@@ -6,7 +6,6 @@ async def forums_impl(ctx, forums_link, users, db_json, cubecraft_link):
         return
     
     user = {
-        "id": str(ctx.author.id),
         "forums": forums_link,
         "java": "",
         "bedrock": ""
@@ -17,13 +16,12 @@ async def forums_impl(ctx, forums_link, users, db_json, cubecraft_link):
 
     msg = "Successfully connected your Forums account!"
     if old_profile is not None:
-        user.update({"java": old_profile["java"]})
-        user.update({"bedrock": old_profile["bedrock"]})
+        user["java"] = old_profile["java"]
+        user["bedrock"] = old_profile["bedrock"]
         if old_profile["forums"] != "":
             msg = "Successfully updated your account details."
-        users.remove(old_profile)
 
-    users.append(user)
-    db_json.save()
+    users[str(ctx.author.id)] = user
+    db_json.save(indent=4)
 
     await ctx.respond(msg)
