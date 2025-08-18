@@ -2,7 +2,6 @@ from helperfunctions import *
 async def minecraft_impl(ctx, platform, ign, users, db_json):
 
     user = {
-        "id": str(ctx.author.id),
         "forums": "",
         "java": "",
         "bedrock": ""
@@ -11,18 +10,19 @@ async def minecraft_impl(ctx, platform, ign, users, db_json):
     # Check if user already connected their account
     old_profile = get_user_info(str(ctx.author.id), users)
 
+    print(old_profile)
+
     msg = f"Successfully connected your {platform.name} account! " + platform_emoji(platform.name)
     if old_profile is not None:
-        user.update({"forums": old_profile["forums"]})
-        user.update({"java": old_profile["java"]})
-        user.update({"bedrock": old_profile["bedrock"]})
+        user["forums"] = old_profile["forums"]
+        user["java"] = old_profile["java"]
+        user["bedrock"] = old_profile["bedrock"]
         if old_profile[platform.name.lower()] != "":
             msg = f"Successfully updated your {platform.name} account details."
-        users.remove(old_profile)
 
-    user.update({platform.name.lower(): ign})
+    user[platform.name.lower()] = ign
 
-    users.append(user)
-    db_json.save()
+    users[str(ctx.author.id)] = user
+    db_json.save(indent=4)
 
     await ctx.respond(msg)
