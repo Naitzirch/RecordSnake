@@ -157,6 +157,7 @@ async def accept_error(ctx, error):
     if isinstance(error, CheckFailure):
         await ctx.respond("You're not an admin")
 
+
 from commands.parkour_delete import delete_impl
 @has_permissions(administrator=True)
 @parkour.command(guilds_ids=guilds, name="delete", description="Remove records from the database")
@@ -166,6 +167,7 @@ async def delete_parkour(ctx: discord.ApplicationContext,
                          map_name=Option(str, "Name of the map", name="map", autocomplete=discord.utils.basic_autocomplete(get_types)),
                          level=Option(int, "Level of the map", autocomplete=discord.utils.basic_autocomplete(get_types), required=False)):
     await delete_impl(ctx, platform, mode, map_name, level)
+
 
 
 # run the bot
