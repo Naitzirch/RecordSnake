@@ -104,7 +104,7 @@ async def register_impl(ctx, bot, platform, mode, map_name, level, discord_ids, 
         response_string = "❌ Something went wrong, current entry:"
         response_string += summary(platform, mode, map_name, level, parkour_record["record_holders"], parkour_record["value"], parkour_record["evidence"], record_path)
         response_string += "\nIf you meant to do this, maybe first try to delete the record using:\n"
-        response_string += "```/parkour delete```"
+        response_string += f"```/parkour delete platform:{platform} mode:{mode} map:{map_name} level:{level}```"
         await ctx.respond(response_string)
         return
     
