@@ -9,6 +9,7 @@ from simplejsondb import Database
 from enum import Enum
 
 from helperfunctions import get_subkeys
+from helperfunctions import make_path
 
 intents = discord.Intents.default()
 intents.members = True
@@ -126,27 +127,52 @@ async def minecraft(ctx, platform=Option(Enum('Platform', ['Java', 'Bedrock']), 
 # Parkour group
 parkour = bot.create_group("parkour", "Modify the record database.", guilds)
 
-async def get_types(ctx: discord.AutocompleteContext):
+
+async def get_modes(ctx: discord.AutocompleteContext):
+    platform = ctx.options['platform']
+    mode = ctx.options['mode']
+
+    all_modes = get_subkeys(parkour_db, platform)
+    if mode is None or mode == '':
+        return all_modes
+    
+    return [m for m in all_modes if m.startswith(mode)]
+
+async def get_maps(ctx: discord.AutocompleteContext):
     platform = ctx.options['platform']
     mode = ctx.options['mode']
     map_name = ctx.options['map']
     
-    path = platform # for modes (final else case)
-    if map_name != '' and map_name is not None: # for level numbers
-        path =  ".".join((platform, mode, map_name))
-    elif mode != '': # for maps
-        path = ".".join((platform, mode))
+    path = make_path(platform, mode)
+    all_maps = get_subkeys(parkour_db, path)
 
-    return get_subkeys(parkour_db, path)
+    if map_name is None or '':
+        return all_maps
+
+    return [m for m in all_maps if m.startswith(map_name)]
+
+async def get_levels(ctx: discord.AutocompleteContext):
+    platform = ctx.options['platform']
+    mode = ctx.options['mode']
+    map_name = ctx.options['map']
+    level = ctx.options['level']
+    
+    path = make_path(platform, mode, map_name)
+    all_levels = get_subkeys(parkour_db, path)
+
+    if level is None or '':
+        return all_levels
+
+    return [m for m in all_levels if m.startswith(level)]
 
 from commands.parkour_register import register_impl
 @has_permissions(administrator=True)
 @parkour.command(guild_ids=guilds, description="Add a record to the database")
 async def register(ctx: discord.ApplicationContext,
                    platform=Option(str, "Platform type", choices=['Java', 'Bedrock']),
-                   mode=Option(str, "Simple, Easy, Medium, ...", autocomplete=discord.utils.basic_autocomplete(get_types)),
-                   map_name=Option(str, "Name of the map", name="map", autocomplete=discord.utils.basic_autocomplete(get_types)),
-                   level=Option(int, "Level of the map", autocomplete=discord.utils.basic_autocomplete(get_types)),
+                   mode=Option(str, "Simple, Easy, Medium, ...", autocomplete=discord.utils.basic_autocomplete(get_modes)),
+                   map_name=Option(str, "Name of the map", name="map", autocomplete=discord.utils.basic_autocomplete(get_maps)),
+                   level=Option(int, "Level of the map", autocomplete=discord.utils.basic_autocomplete(get_levels)),
                    discord_id=Option(str, "Can be @ or numeric discord ID. Use comma to seperate when adding multiple IDs/tags", default=None),
                    value=Option(str, "Time as mm:ss:ttt", default="00:00:000"),
                    evidence_link=Option(str, "Link to the discord evidence message (also use comma to seperate links if adding multiple)", default="")):
@@ -163,9 +189,9 @@ from commands.parkour_delete import delete_impl
 @parkour.command(guilds_ids=guilds, name="delete", description="Remove records from the database")
 async def delete_parkour(ctx: discord.ApplicationContext,
                          platform=Option(str, "Platform type", choices=['Java', 'Bedrock']),
-                         mode=Option(str, "Simple, Easy, Medium, ...", autocomplete=discord.utils.basic_autocomplete(get_types)),
-                         map_name=Option(str, "Name of the map", name="map", autocomplete=discord.utils.basic_autocomplete(get_types)),
-                         level=Option(int, "Level of the map", autocomplete=discord.utils.basic_autocomplete(get_types), default="")):
+                         mode=Option(str, "Simple, Easy, Medium, ...", autocomplete=discord.utils.basic_autocomplete(get_modes)),
+                         map_name=Option(str, "Name of the map", name="map", autocomplete=discord.utils.basic_autocomplete(get_maps)),
+                         level=Option(int, "Level of the map", autocomplete=discord.utils.basic_autocomplete(get_levels), default="")):
     await delete_impl(ctx, platform, mode, map_name, str(level), db_json, parkour_db_json, users)
 
 
