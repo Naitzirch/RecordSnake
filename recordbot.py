@@ -73,7 +73,7 @@ async def disc(ctx, other_user=Option(Member, "Discord name", required=False, na
 from commands.submit import submit_impl
 @bot.slash_command(guild_ids=guilds, description="Submit your record, it should appear in the queue!")
 async def submit(ctx, 
-                 platform=Option(Enum('Platform', ['Java', 'Bedrock']), "Platform type"),
+                 platform=Option(str, "Platform type", choices=['Java', 'Bedrock']),
                  game=Option(str, "Eggwars, Skywars, etc."),
                  record=Option(str, "What record are you submitting for? Example: Most kills."), 
                  evidence=Option(str, description="Links go here. An image can be pasted or uploaded in the optional attachment field"),
@@ -194,7 +194,16 @@ async def delete_parkour(ctx: discord.ApplicationContext,
                          level=Option(int, "Level of the map", autocomplete=discord.utils.basic_autocomplete(get_levels), default="")):
     await delete_impl(ctx, platform, mode, map_name, str(level), db_json, parkour_db_json, users)
 
-
+from commands.parkour_submit import submit_parkour_impl
+@parkour.command(guilds_ids=guilds, name="submit", description="Remove records from the database")
+async def submit_parkour(ctx: discord.ApplicationContext,
+                         platform=Option(str, "Platform type", choices=['Java', 'Bedrock']),
+                         mode=Option(str, "Simple, Easy, Medium, ...", autocomplete=discord.utils.basic_autocomplete(get_modes)),
+                         map_name=Option(str, "Name of the map", name="map", autocomplete=discord.utils.basic_autocomplete(get_maps)),
+                         level=Option(int, "Level of the map", autocomplete=discord.utils.basic_autocomplete(get_levels)),
+                         score=Option(str, "Time as mm:ss:ttt"),
+                         evidence=Option(str, description="Links go here.")):
+    await submit_parkour_impl(ctx, bot, platform, mode, map_name, str(level), score, evidence, botInfo, users, db_json, queue_json, queue)
 
 # run the bot
 bot.run(botInfo["token"])

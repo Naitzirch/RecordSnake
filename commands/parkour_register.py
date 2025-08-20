@@ -1,18 +1,7 @@
 from helperfunctions import get_user_info
 from helperfunctions import make_path
-
-def to_millis(time_str):
-    """Convert mm:ss:ttt string to milliseconds. Raises ValueError if format is invalid."""
-    minutes, seconds, millis = time_str.split(":")
-    return int(minutes) * 60 * 1000 + int(seconds) * 1000 + int(millis)
-
-def from_millis(millis):
-    """Convert milliseconds to mm:ss:ttt string."""
-    minutes = millis // (60 * 1000)
-    millis %= (60 * 1000)
-    seconds = millis // 1000
-    millis %= 1000
-    return f"{minutes:02}:{seconds:02}:{millis:03}"
+from helperfunctions import to_millis
+from helperfunctions import from_millis
 
 def summary(platform, mode, map_name, level, record_holders, score, evidence, record_path):
     # Create response message

@@ -2,10 +2,18 @@ import random
 import pandas as pd
 import hashlib
 
-# Create a hash id from the platform, game and record
-# def get_hash(a,b,c):
-#     base = f"{a}|{b}|{c}"
-#     return "#" + hashlib.sha256(base.encode()).hexdigest()[:12]  # short, still safe
+def to_millis(time_str):
+    """Convert mm:ss:ttt string to milliseconds. Raises ValueError if format is invalid."""
+    minutes, seconds, millis = time_str.split(":")
+    return int(minutes) * 60 * 1000 + int(seconds) * 1000 + int(millis)
+
+def from_millis(millis):
+    """Convert milliseconds to mm:ss:ttt string."""
+    minutes = millis // (60 * 1000)
+    millis %= (60 * 1000)
+    seconds = millis // 1000
+    millis %= 1000
+    return f"{minutes:02}:{seconds:02}:{millis:03}"
 
 def make_path(*parts):
     return ".".join(str(p) for p in parts)
