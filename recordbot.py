@@ -201,7 +201,7 @@ async def submit_parkour(ctx: discord.ApplicationContext,
                          mode=Option(str, "Simple, Easy, Medium, ...", autocomplete=discord.utils.basic_autocomplete(get_modes)),
                          map_name=Option(str, "Name of the map", name="map", autocomplete=discord.utils.basic_autocomplete(get_maps)),
                          level=Option(int, "Level of the map", autocomplete=discord.utils.basic_autocomplete(get_levels)),
-                         score=Option(str, "Time as mm:ss:ttt"),
+                         score=Option(str, "Time as mm:ss:ttt or ss:ttt"),
                          evidence=Option(str, description="Links go here.")):
     await submit_parkour_impl(ctx, bot, platform, mode, map_name, str(level), score, evidence, botInfo, users, db_json, queue_json, queue)
 

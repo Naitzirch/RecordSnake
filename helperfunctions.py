@@ -3,8 +3,15 @@ import pandas as pd
 import hashlib
 
 def to_millis(time_str):
-    """Convert mm:ss:ttt string to milliseconds. Raises ValueError if format is invalid."""
-    minutes, seconds, millis = time_str.split(":")
+    """Convert mm:ss:ttt or ss:ttt string to milliseconds. Raises ValueError if format is invalid."""
+    parts = time_str.split(":")
+    if len(parts) == 3:
+        minutes, seconds, millis = parts
+    elif len(parts) == 2:
+        minutes = 0
+        seconds, millis = parts
+    else:
+        raise ValueError("Invalid time format. Expected mm:ss:ttt or ss:ttt.")
     return int(minutes) * 60 * 1000 + int(seconds) * 1000 + int(millis)
 
 def from_millis(millis):

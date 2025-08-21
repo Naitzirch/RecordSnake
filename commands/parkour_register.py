@@ -28,8 +28,8 @@ async def register_impl(ctx, bot, platform, mode, map_name, level, discord_ids, 
     # Example: "01:23:456" -> 1*60*1000 + 23*1000 + 456 = 83456
     try:
         value = to_millis(value)
-    except Exception:
-        await ctx.respond("Invalid time format, use mm:ss:ttt e.g. 01:23:456 for 1 minute 23 seconds and 456 thousands", ephemeral=True)
+    except Exception as e:
+        await ctx.respond(e, ephemeral=True)
         return
 
     evidence_ids = []
