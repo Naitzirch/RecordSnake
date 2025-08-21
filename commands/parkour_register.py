@@ -3,49 +3,75 @@ from helperfunctions import make_path
 from helperfunctions import to_millis
 from helperfunctions import from_millis
 
-def summary(platform, mode, map_name, level, record_holders, score, evidence, record_path):
+def summary(platform, mode, map_name, level, record_holders, scores, evidence, record_path):
     # Create response message
     summary = f'''\n> **Platform:** {platform}
                     > **Game:** Parkour
                     > **Mode:** {mode}
                     > **Record:** {map_name} {level}
                     > **Holder(s):** {["<@"+str(discord_id)+">" for discord_id in record_holders] if record_holders else "N/A"}
-                    > **Score:** {from_millis(score)}
+                    > **Score:** {[from_millis(score) for score in scores] if scores else 'N/A'}
                     > **Evidence:** { ["https://discord.com/channels/" + evidence_id for evidence_id in evidence] if evidence else "N/A"}
 -# debug: {record_path}'''
     return summary
 
-async def register_impl(ctx, bot, platform, mode, map_name, level, discord_ids, value, evidence_links, db_json, parkour_db_json, users):
+def add_record_to_user(record_path, discord_id, db_json, users):
+    # Add records to the record holders in the user db
+    # if user specified then add record to user's list of records
+    user = get_user_info(discord_id, users)
+    if user:
+        user_records = user.setdefault("parkour_records", [])
+        if record_path not in user_records:
+                user_records.append(record_path)
+        else:
+            user_records.remove(record_path).append(record_path)
+        db_json.save(indent=4)
+
+async def register_impl(ctx, bot, platform, mode, map_name, level, discord_id, score, evidence_link, db_json, parkour_db_json, users):
     parkour_db = parkour_db_json.data
 
     response_string = "✅ Added new record:"
     
-    discord_ids = discord_ids.replace(" ", "").split(",") if discord_ids else [] # remove whitespace and turn string of ids into list
     # In case the discord tag was used as input, extract the id
-    discord_ids = [discord_id[2:-1] if discord_id[:2] == "<@" else discord_id for discord_id in discord_ids]
+    try:
+        if discord_id:
+            discord_id = [discord_id[2:-1]] if discord_id[:2] == "<@" else [discord_id]
+        else:
+            discord_id = []
+    except Exception as e:
+        await ctx.respond(f"`discord_id` only accepts a discord ID or tag\n-# {e}", ephemeral=True)
+        return
     
     # convert value in format mm:ss:ttt to thousands of a second
     # Example: "01:23:456" -> 1*60*1000 + 23*1000 + 456 = 83456
     try:
-        value = to_millis(value)
+        if score:
+            score = [to_millis(score)]
+        else:
+            score = []
     except Exception as e:
         await ctx.respond(e, ephemeral=True)
         return
+    
 
-    evidence_ids = []
-    time_stamps = []
-    if evidence_links:
-        evidence_ids = [evidence_link[29:] for evidence_link in evidence_links.replace(" ", "").split(",")] # remove white space and discord domain part
-        # Get evidence time-stamp
-        id_lists = [evidence_id.split("/") for evidence_id in evidence_ids] # Split id lists into guild, channel and msg id
-        msgs = [await bot.get_channel(int(id_list[1])).fetch_message(int(id_list[2])) for id_list in id_lists]
-        time_stamps = [msg.created_at.isoformat() for msg in msgs]
-
+    evidence_id = []
+    time_stamp  = []
+    try:
+        if evidence_link:
+            evidence_id = [evidence_link[29:]] # remove discord domain part
+            # Get evidence time-stamp
+            id_list = evidence_id[0].split("/") # Split id lists into guild, channel and msg id
+            channel = bot.get_channel(int(id_list[1]))
+            msg = await channel.fetch_message(int(id_list[2]))
+            time_stamp = [msg.created_at.isoformat()]
+    except Exception as e:
+        await ctx.respond(f"`evidence_link` must use format `https://discord.com/channels/000000000000000000/000000000000000000/0000000000000000000`\n-# {e}", ephemeral=True)
+        return
 
     # create record object to store
     parkour_record = {
         "record_holders": [],
-        "value": 0,
+        "score": [],
         "evidence": [],
         "time": []
     }
@@ -57,62 +83,55 @@ async def register_impl(ctx, bot, platform, mode, map_name, level, discord_ids, 
     # Generate path name for storing record under the user id
     record_path = make_path(platform,mode,map_name,level)
 
-    if 0 < parkour_record["value"] == value: # record equals old
+    # Record not set OR beaten
+    try:
+        if not parkour_record["score"] or score[0] < parkour_record["score"][0]:
+            # remove old record holders' records in the users table
+            old_holders = [ parkour_record["record_holders"][i] for i, s in enumerate(parkour_record["score"]) if s == parkour_record["score"][0] ]
+            for id in old_holders:
+                users[id]["parkour_records"].remove(record_path)
+            
+            # prepend id, score, evidence and time
+            parkour_record["record_holders"] = discord_id + parkour_record["record_holders"]
+            parkour_record["score"]          = score + parkour_record["score"]
+            parkour_record["evidence"]       = evidence_id + parkour_record["evidence"]
+            parkour_record["time"]           = time_stamp + parkour_record["time"]
 
-        # If the given holders are already in the record_holders list, update their evidence and time_stamp
-        duplicate_id_idxs = []
-        for id_idx in range(len(discord_ids)):
-            try:
-                pr_idx = parkour_record["record_holders"].index(discord_ids[id_idx])
-                parkour_record["evidence"][pr_idx] = evidence_ids[id_idx]
-                parkour_record["time"][pr_idx] = time_stamps[id_idx]
-                duplicate_id_idxs.append(id_idx)
-            except:
-                pass
-        # Then remove holders that were already in the list
-        for i in duplicate_id_idxs:
-            discord_ids.pop(i)
-            evidence_ids.pop(i)
-            time_stamps.pop(i)
+            if discord_id: add_record_to_user(record_path, discord_id[0], db_json, users)
+        # Record set and not beaten
+        else:
+            # if the score was tied, add a record to the user
+            if score[0] == parkour_record["score"]: add_record_to_user(record_path, discord_id[0], db_json, users)
 
-        # update parkour_db
-        parkour_record["record_holders"].extend(discord_ids)
-        parkour_record["evidence"].extend(evidence_ids)
-        parkour_record["time"].extend(time_stamps)
-    elif value < parkour_record["value"] or parkour_record["value"] == 0: # record beaten / not set
-        # remove old record holders' records in the users table
-        for id in parkour_record["record_holders"]:
-            users[id]["parkour_records"].remove(record_path)
+            # Here we have to add record_holders, score, evidence and time to their respective lists
+            # and sort them, first based on score, then based on oldest time.
+            parkour_record["record_holders"].extend(discord_id)
+            parkour_record["score"].extend(score)
+            parkour_record["evidence"].extend(evidence_id)
+            parkour_record["time"].extend(time_stamp)
 
-        parkour_record["record_holders"] = discord_ids  # add new users in the parkour_db
-        parkour_record["value"]          = value        # update value
-        parkour_record["evidence"]       = evidence_ids # update evidence list
-        parkour_record["time"]           = time_stamps  # update timestamps list
-    else:
-        parkour_db_json.save(indent=4)
-        response_string = "❌ Something went wrong, current entry:"
-        response_string += summary(platform, mode, map_name, level, parkour_record["record_holders"], parkour_record["value"], parkour_record["evidence"], record_path)
-        response_string += "\nIf you meant to do this, maybe first try to delete the record using:\n"
-        response_string += f"```/parkour delete platform:{platform} mode:{mode} map:{map_name} level:{level}```"
-        await ctx.respond(response_string)
+            # Zip all lists together for sorting
+            combined = list(zip(
+                parkour_record["record_holders"],
+                parkour_record["score"],
+                parkour_record["evidence"],
+                parkour_record["time"]
+            ))
+
+            # Sort by score, then by time_stamp (oldest first)
+            combined.sort(key=lambda x: (x[1], x[3]))
+
+            # Unzip back to individual lists
+            parkour_record["record_holders"], parkour_record["score"], parkour_record["evidence"], parkour_record["time"] = map(list, zip(*combined))
+    except Exception as e:
+        await ctx.respond(f"`discord_id`, `score` and `evidence_link` can not be empty once the record has been claimed.\n-# {e}")
         return
     
     # store record object
     parkour_db_json.save(indent=4)
 
-    # Add records to the record holders in the user db
-    # if user specified then add record to user's list of records
-    for discord_id in discord_ids:
-        user = get_user_info(discord_id, users)
-        if user:
-            user_records = user.setdefault("parkour_records", [])
-            if record_path not in user_records:
-                    user_records.append(record_path)
-            else:
-                user_records = [record_path]
-            db_json.save(indent=4)
 
-    response_string += summary(platform, mode, map_name, level, parkour_record["record_holders"], value, parkour_record["evidence"], record_path)
+    response_string += summary(platform, mode, map_name, level, parkour_record["record_holders"], parkour_record["score"], parkour_record["evidence"], record_path)
 
     await ctx.respond(response_string)
 

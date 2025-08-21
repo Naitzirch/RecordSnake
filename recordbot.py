@@ -171,15 +171,15 @@ from commands.parkour_register import register_impl
 async def register(ctx: discord.ApplicationContext,
                    platform=Option(str, "Platform type", choices=['Java', 'Bedrock']),
                    mode=Option(str, "Simple, Easy, Medium, ...", autocomplete=discord.utils.basic_autocomplete(get_modes)),
-                   map_name=Option(str, "Name of the map", name="map", autocomplete=discord.utils.basic_autocomplete(get_maps)),
-                   level=Option(int, "Level of the map", autocomplete=discord.utils.basic_autocomplete(get_levels)),
-                   discord_id=Option(str, "Can be @ or numeric discord ID. Use comma to seperate when adding multiple IDs/tags", default=None),
-                   value=Option(str, "Time as mm:ss:ttt", default="00:00:000"),
-                   evidence_link=Option(str, "Link to the discord evidence message (also use comma to seperate links if adding multiple)", default="")):
-    await register_impl(ctx, bot, platform, mode, map_name, str(level), discord_id, value, evidence_link, db_json, parkour_db_json, users)
+                   map_name=Option(str, "Name of the map.", name="map", autocomplete=discord.utils.basic_autocomplete(get_maps)),
+                   level=Option(int, "Level of the map.", autocomplete=discord.utils.basic_autocomplete(get_levels)),
+                   discord_id=Option(str, "Can be @ or numeric discord ID.", default=None),
+                   score=Option(str, "Time as mm:ss:ttt", default=None),
+                   evidence_link=Option(str, "Link to the discord evidence message.", default=None)):
+    await register_impl(ctx, bot, platform, mode, map_name, str(level), discord_id, score, evidence_link, db_json, parkour_db_json, users)
 
 @register.error
-async def accept_error(ctx, error):
+async def register_error(ctx, error):
     if isinstance(error, CheckFailure):
         await ctx.respond("You're not an admin")
 
@@ -193,6 +193,11 @@ async def delete_parkour(ctx: discord.ApplicationContext,
                          map_name=Option(str, "Name of the map", name="map", autocomplete=discord.utils.basic_autocomplete(get_maps)),
                          level=Option(int, "Level of the map", autocomplete=discord.utils.basic_autocomplete(get_levels), default="")):
     await delete_impl(ctx, platform, mode, map_name, str(level), db_json, parkour_db_json, users)
+
+@delete_parkour.error
+async def delete_parkour_error(ctx, error):
+    if isinstance(error, CheckFailure):
+        await ctx.respond("You're not an admin")
 
 from commands.parkour_submit import submit_parkour_impl
 @parkour.command(guilds_ids=guilds, name="submit", description="Remove records from the database")
