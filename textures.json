@@ -1,0 +1,119 @@
+{
+    "Java": {
+        "Game": {
+            "Parkour": {
+                "Default": "https://minecraft.wiki/images/Golden_Boots_(item)_JE3_BE3.png",
+                "Mode": {
+                    "Simple":{
+                        "color": "3447003",
+                        "map_name": {
+                            "Antarctica":"https://static.wikia.nocookie.net/minecraft_gamepedia/images/7/7f/Packed_Ice_JE2_BE3.png",
+                            "Arch": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/3/37/Bone_Block_%28UD%29_JE2_BE2.png",
+                            "Arena": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/3/37/Red_Concrete.png",
+                            "Candy": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/4/46/Pink_Concrete.png",
+                            "Dunes": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/4/47/Cactus_JE4.png",
+                            "Labyrinth": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/2/29/Chiseled_Quartz_Block_%28UD%29_JE2_BE2.png",
+                            "Marsh": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/0/07/Lime_Terracotta_JE1_BE1.png",
+                            "Melon": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/f/f0/Melon_JE2_BE2.png",
+                            "Mobs": "https://minecraft.wiki/images/Creeper_Head_%28S%29_JE1.png",
+                            "Modern": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/a/a9/Quartz_Pillar_%28UD%29_JE3_BE2.png",
+                            "Mushrooms": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/4/4c/Brown_Mushroom_Block_%28ESU%29_JE2_BE2.png",
+                            "Pyramid": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/4/47/Red_Sandstone_JE4_BE2.png",
+                            "Rainbow": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/d/de/Purple_Concrete_Powder.png",
+                            "Spirited": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/2/21/Prismarine_Bricks_JE2_BE2.png",
+                            "Volcanic": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/d/d1/Magma_Block_JE2_BE2.gif",
+                            "Desert": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/7/71/Sand_JE5_BE3.png",
+                            "Zen":"https://static.wikia.nocookie.net/minecraft_gamepedia/images/3/30/Redstone_Lamp_JE3_BE2.png"
+                        }
+                    },
+                    "Easy":{
+                        "color": "3066993",
+                        "map_name":{
+                            "Barn": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/c/c7/Hay_Bale_%28UD%29_JE2_BE2.png",
+                            "Carrots": "https://minecraft.wiki/images/Carrot_JE3_BE2.png",
+                            "Cherry Grove": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/8/87/Cherry_Leaves_JE2.png",
+                            "Circus": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/4/48/Red_Wool_JE3_BE3.png",
+                            "Clouds": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/6/66/White_Wool_JE2_BE2.png",
+                            "Cuboid": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/1/13/Red_Glazed_Terracotta_JE1_BE1.png",
+                            "Drought": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/9/95/Sandstone_JE6_BE3.png",
+                            "End": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/4/43/End_Stone_JE3_BE2.png",
+                            "Honey": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/3/3b/Honeycomb_Block_JE1_BE1.png",
+                            "Ice": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/0/03/Blue_Ice_JE3_BE2.png",
+                            "Jungle": "https://minecraft.wiki/images/archive/20190406122446%21Jungle_Sapling_JE7_BE2.png",
+                            "Mountain": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/c/ce/Andesite.png",
+                            "Nether": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/0/02/Netherrack_JE4_BE2.png",
+                            "Oriental": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/4/4a/Granite.png",
+                            "River": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/2/26/Light_Blue_Stained_Glass_JE3_BE3.png",
+                            "Sewer": "https://minecraft.wiki/images/archive/20111010091414%21Iron_Bars_%28EW%29_JE7.png",
+                            "Temple": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/f/fe/Dark_Oak_Planks_JE3_BE2.png",
+                            "Wheat": "https://minecraft.wiki/images/Wheat_JE2_BE2.png",
+                            "TNT": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/a/a2/TNT_JE3_BE2.png",
+                            "Space": "https://minecraft.wiki/images/Firework_Rocket_JE2_BE2.png",
+                            "Tower": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/6/62/Bricks_JE5_BE3.png",
+                            "Barriers": "https://minecraft.wiki/images/archive/20221216145251%21Barrier_%28held%29_JE2_BE2.png",
+                            "Jurassic": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/7/7b/Green_Terracotta_JE1_BE1.png",
+                            "Maze": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/6/6d/Oak_Leaves.png"
+                        }
+                    },
+                    "Medium":{
+                        "color": "16705372",
+                        "map_name": {
+                            "Beach": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/7/71/Sand_JE5_BE3.png",
+                            "Bookshelf": "https://minecraft.wiki/images/Written_Book_JE2_BE2.png",
+                            "Cinema": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/e/ee/Jukebox_JE2_BE2.png",
+                            "Circuit": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/a/a8/Polished_Diorite_JE2_BE2.png",
+                            "Fast Food": "https://minecraft.wiki/images/Steak_JE4_BE3.png",
+                            "House": "https://minecraft.wiki/images/Oak_Door_%28item%29_JE4_BE3.png",
+                            "Library": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/0/05/Bookshelf_JE4_BE2.png",
+                            "Portal": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/9/99/Obsidian_JE3_BE2.png",
+                            "Retro": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/b/b4/Blue_Wool_JE3_BE3.png",
+                            "Sculk": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/6/6c/Sculk_Sensor_JE1.gif",
+                            "Square": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/8/85/Birch_Planks.png",
+                            "Autumn": "https://minecraft.wiki/images/Dead_Bush_%28texture%29_JE2_BE2.png",
+                            "Swamp": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/0/02/Spruce_Leaves.png",
+                            "Void": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/d/dc/End_Rod_%28U%29_JE2_BE2.png",
+                            "Emoji": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/f/f9/Yellow_Terracotta_JE1_BE1.png"
+                        }
+                    },
+                    "Hard":{
+                        "color": "15158332",
+                        "map_name":{
+                            "Aqua": "https://minecraft.wiki/images/Water_Bucket_JE2_BE2.png",
+                            "Chess": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/d/de/Smooth_Quartz_Block_JE3_BE2.png",
+                            "Dam": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/3/37/Light_Blue_Wool_JE3_BE3.png",
+                            "Desert": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/1/11/Smooth_Sandstone_JE5_BE2.png",
+                            "Endurance": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/4/46/Dark_Oak_Log_%28UD%29_JE6.png",
+                            "Hell": "https://minecraft.wiki/images/Lava_Bucket_JE2_BE2.png",
+                            "Snowy": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/a/a5/Snow_%28layers_1%29_JE3_BE3.png"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "Bedrock": {
+        "Game":{
+            "Parkour":{
+                "Default": "https://minecraft.wiki/images/Golden_Boots_(item)_JE3_BE3.png",
+                "Mode":{
+                    "Easy":{
+                        "color":"3447003",
+                        "map_name":{}
+                    },
+                    "Normal":{
+                        "color":"3066993",
+                        "map_name":{}
+                    },
+                    "Difficult":{
+                        "color":"16705372",
+                        "map_name":{}
+                    },
+                    "Impossible":{
+                        "color":"15158332",
+                        "map_name":{}
+                    }
+                }
+            }
+        }
+    }
+}

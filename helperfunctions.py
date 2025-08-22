@@ -31,6 +31,12 @@ def get_subkeys(data, path):
         data = data.get(key, {})
     return list(data.keys())
 
+def get_data_from_path(d, path):
+    path = path.split(".")
+    for k in path:
+        d = d.get(k, {})
+    return d
+
 # Generate a random number so long we find the random number in the submissions
 def generate_random_id(queue):
     unique = False

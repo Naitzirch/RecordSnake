@@ -3,6 +3,8 @@ from helperfunctions import make_path
 from helperfunctions import to_millis
 from helperfunctions import from_millis
 
+from commands.parkour_info import parkour_info_impl
+
 def summary(platform, mode, map_name, level, record_holders, scores, evidence, record_path):
     # Create response message
     summary = f'''\n> **Platform:** {platform}
@@ -30,7 +32,7 @@ def add_record_to_user(record_path, discord_id, db_json, users):
 async def register_impl(ctx, bot, platform, mode, map_name, level, discord_id, score, evidence_link, db_json, parkour_db_json, users):
     parkour_db = parkour_db_json.data
 
-    response_string = "✅ Added new record:"
+    response_string = "✅ Added new record"
     
     # In case the discord tag was used as input, extract the id
     try:
@@ -131,7 +133,5 @@ async def register_impl(ctx, bot, platform, mode, map_name, level, discord_id, s
     parkour_db_json.save(indent=4)
 
 
-    response_string += summary(platform, mode, map_name, level, parkour_record["record_holders"], parkour_record["score"], parkour_record["evidence"], record_path)
-
-    await ctx.respond(response_string)
+    await parkour_info_impl(ctx, platform, mode, map_name, level, parkour_db_json, users, response_string)
 

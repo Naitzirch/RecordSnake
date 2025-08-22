@@ -1,9 +1,13 @@
+import json
 import discord
 from datetime import datetime
 
 from helperfunctions import from_millis
+from helperfunctions import make_path
+from helperfunctions import get_data_from_path
 
-async def parkour_info_impl(ctx, platform, mode, map_name, level, parkour_db_json, users):
+
+async def parkour_info_impl(ctx, platform, mode, map_name, level, parkour_db_json, users, message=None):
     parkour_db = parkour_db_json.data
 
     identifier = "Platform:\nMap:\nLevel:\nDifficulty:"
@@ -11,7 +15,7 @@ async def parkour_info_impl(ctx, platform, mode, map_name, level, parkour_db_jso
     try:
         level = parkour_db[platform][mode][map_name][level]
     except:
-        ctx.respond("This map or level does not exist", ephemeral=True)
+        await ctx.respond("This map or level does not exist", ephemeral=True)
         return
 
     try:
@@ -31,11 +35,20 @@ async def parkour_info_impl(ctx, platform, mode, map_name, level, parkour_db_jso
     evidence = ["https://discord.com/channels/" + e for e in evidence]
     date_evidence = list(zip(dates, evidence))
     date_evidence = [de[0] + "          " + de[1] for de in date_evidence]
+    if not date_evidence: date_evidence = ["N/A　　　N/A"]
     
+    with open("textures.json", "r") as f:
+        textures = json.load(f)
+        texture = get_data_from_path(textures, make_path(platform, "Game", "Parkour", "Mode", mode, "map_name", map_name))
+        if texture == {}:
+            texture = get_data_from_path(textures, make_path(platform, "Game", "Parkour", "Default"))
+        embed_color = discord.Colour(int(get_data_from_path(textures, make_path(platform, "Game", "Parkour", "Mode", mode, "color"))))
+
     embed = (
         discord.Embed(
             title="Parkour Info",
-            color=discord.Colour.blue(),
+            description=message,
+            color=embed_color,
         )
         .add_field(name="Identifier", value=identifier)
         .add_field(name="Value"     , value=identifier_value)
@@ -43,7 +56,7 @@ async def parkour_info_impl(ctx, platform, mode, map_name, level, parkour_db_jso
         .add_field(name="Holder(s)", value="\n".join(holders))
         .add_field(name="Score", value="\n".join(scores))
         .add_field(name="Date         Evidence", value="\n".join(date_evidence))
-        .set_thumbnail(url="https://minecraft.wiki/images/Golden_Boots_(item)_JE3_BE3.png")
+        .set_thumbnail(url=texture)
     )
 
     await ctx.respond(embed=embed)
