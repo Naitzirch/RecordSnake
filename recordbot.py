@@ -210,5 +210,14 @@ async def submit_parkour(ctx: discord.ApplicationContext,
                          evidence=Option(str, description="Links go here.")):
     await submit_parkour_impl(ctx, bot, platform, mode, map_name, str(level), score, evidence, botInfo, users, db_json, queue_json, queue)
 
+from commands.parkour_info import parkour_info_impl
+@parkour.command(guilds_ids=guilds, name="info", description="Display information on a Parkour level")
+async def parkour_info(ctx: discord.ApplicationContext,
+                       platform=Option(str, "Platform type", choices=['Java', 'Bedrock']),
+                       mode=Option(str, "Simple, Easy, Medium, ...", autocomplete=discord.utils.basic_autocomplete(get_modes)),
+                       map_name=Option(str, "Name of the map", name="map", autocomplete=discord.utils.basic_autocomplete(get_maps)),
+                       level=Option(int, "Level of the map", autocomplete=discord.utils.basic_autocomplete(get_levels))):
+    await parkour_info_impl(ctx, platform, mode, map_name, str(level), parkour_db_json, users)
+
 # run the bot
 bot.run(botInfo["token"])
