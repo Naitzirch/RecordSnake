@@ -5,18 +5,6 @@ from helperfunctions import from_millis
 
 from commands.parkour_info import parkour_info_impl
 
-def summary(platform, mode, map_name, level, record_holders, scores, evidence, record_path):
-    # Create response message
-    summary = f'''\n> **Platform:** {platform}
-                    > **Game:** Parkour
-                    > **Mode:** {mode}
-                    > **Record:** {map_name} {level}
-                    > **Holder(s):** {["<@"+str(discord_id)+">" for discord_id in record_holders] if record_holders else "N/A"}
-                    > **Score:** {[from_millis(score) for score in scores] if scores else 'N/A'}
-                    > **Evidence:** { ["https://discord.com/channels/" + evidence_id for evidence_id in evidence] if evidence else "N/A"}
--# debug: {record_path}'''
-    return summary
-
 def add_record_to_user(record_path, discord_id, db_json, users):
     # Add records to the record holders in the user db
     # if user specified then add record to user's list of records
