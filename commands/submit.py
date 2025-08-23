@@ -2,6 +2,10 @@ import discord
 from helperfunctions import *
 
 async def submit_impl(ctx, bot, platform, game, record, evidence, attachment, botInfo, users, db_json, queue_json, queue, score=""):
+    if game.lower() == "parkour" and score == "":
+        await ctx.respond("Use `/parkour submit` for Parkour submissions :)")
+        return
+    
     user = get_user_info(str(ctx.author.id), users)
     # Check if the user has connected their account.
     if (user == None):
