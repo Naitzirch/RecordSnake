@@ -85,7 +85,7 @@ from commands.accept import accept_impl
 @has_permissions(administrator=True)
 @bot.slash_command(guild_ids=guilds, description="Accept a record.")
 async def accept(ctx, scode, prevholder, newholder=Option(str, "Only use this option if the submitter submitted for somebody else.", required=False)):
-    await accept_impl(ctx, bot, scode, prevholder, newholder, botInfo, queue_json, queue)
+    await accept_impl(ctx, bot, scode, prevholder, newholder, botInfo, queue_json, queue, db_json, parkour_db_json, users)
 
 @accept.error
 async def accept_error(ctx, error):

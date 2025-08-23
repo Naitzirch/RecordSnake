@@ -5,22 +5,21 @@ from helperfunctions import from_millis
 
 from commands.parkour_info import parkour_info_impl
 
-def add_record_to_user(record_path, discord_id, db_json, users):
+def add_record_to_user(record_path, discord_id, db_json):
     # Add records to the record holders in the user db
     # if user specified then add record to user's list of records
-    user = get_user_info(discord_id, users)
+    user = get_user_info(discord_id, db_json.data["users"])
     if user:
         user_records = user.setdefault("parkour_records", [])
         if record_path not in user_records:
                 user_records.append(record_path)
         else:
-            user_records.remove(record_path).append(record_path)
+            user_records.remove(record_path)
+            user_records.append(record_path)
         db_json.save(indent=4)
 
 async def register_impl(ctx, bot, platform, mode, map_name, level, discord_id, score, evidence_link, db_json, parkour_db_json, users):
     parkour_db = parkour_db_json.data
-
-    response_string = "✅ Added new record"
     
     # In case the discord tag was used as input, extract the id
     try:
@@ -73,11 +72,13 @@ async def register_impl(ctx, bot, platform, mode, map_name, level, discord_id, s
     # Generate path name for storing record under the user id
     record_path = make_path(platform,mode,map_name,level)
 
-    # Record not set OR beaten
+    # Record is N/A OR beaten
     try:
         if not parkour_record["score"] or score[0] < parkour_record["score"][0]:
+            beaten = True
             # remove old record holders' records in the users table
             old_holders = [ parkour_record["record_holders"][i] for i, s in enumerate(parkour_record["score"]) if s == parkour_record["score"][0] ]
+            old_holders = list(dict.fromkeys(old_holders)) # remove duplicates while preserving order
             for id in old_holders:
                 users[id]["parkour_records"].remove(record_path)
             
@@ -87,11 +88,17 @@ async def register_impl(ctx, bot, platform, mode, map_name, level, discord_id, s
             parkour_record["evidence"]       = evidence_id + parkour_record["evidence"]
             parkour_record["time"]           = time_stamp + parkour_record["time"]
 
-            if discord_id: add_record_to_user(record_path, discord_id[0], db_json, users)
-        # Record set and not beaten
+            if discord_id: add_record_to_user(record_path, discord_id[0], db_json)
+        # Record has already been set and not beaten or tied
         else:
+            beaten = False
+            old_holders = []
             # if the score was tied, add a record to the user
-            if score[0] == parkour_record["score"]: add_record_to_user(record_path, discord_id[0], db_json, users)
+            if score[0] == parkour_record["score"][0]:
+                beaten = True
+                old_holders = [ parkour_record["record_holders"][i] for i, s in enumerate(parkour_record["score"]) if s == parkour_record["score"][0] ]
+                old_holders = list(dict.fromkeys(old_holders)) # remove duplicates while preserving order
+                add_record_to_user(record_path, discord_id[0], db_json)
 
             # Here we have to add record_holders, score, evidence and time to their respective lists
             # and sort them, first based on score, then based on oldest time.
@@ -113,13 +120,18 @@ async def register_impl(ctx, bot, platform, mode, map_name, level, discord_id, s
 
             # Unzip back to individual lists
             parkour_record["record_holders"], parkour_record["score"], parkour_record["evidence"], parkour_record["time"] = map(list, zip(*combined))
+
     except Exception as e:
         await ctx.respond(f"`discord_id`, `score` and `evidence_link` can not be empty once the record has been claimed.\n-# {e}")
         return
     
+    new_holders = [ parkour_record["record_holders"][i] for i, s in enumerate(parkour_record["score"]) if s == parkour_record["score"][0] ]
+    new_holders = list(dict.fromkeys(new_holders))
+
     # store record object
     parkour_db_json.save(indent=4)
 
-
+    response_string = "✅ Added new record"
     await parkour_info_impl(ctx, platform, mode, map_name, level, parkour_db_json, users, response_string)
 
+    return beaten, old_holders, new_holders

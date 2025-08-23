@@ -1,5 +1,40 @@
 from helperfunctions import platform_emoji
-async def accept_impl(ctx, bot, scode, prevholder, newholder, botInfo, queue_json, queue):
+from helperfunctions import get_user_info
+
+from commands.parkour_register import register_impl
+
+async def send_submitter_reply(bot, botInfo, submission, beaten):
+    subMessage = submission["message"][0:47]
+    if len(submission["message"]) > 47:
+        subMessage = subMessage + "..."
+    
+    if (submission["submissionMessage"]):
+        linkToSubmission = f"\nLink to your submission: {submission['submissionMessage']}"
+
+    feedback_channel = bot.get_channel(int(botInfo["feedbackChannelID"]))
+    if beaten:
+        reply = f"✅ <@{submission['Uid']}> Your {submission['GM']} submission for \"{subMessage}\" has been accepted!{linkToSubmission}"
+    else:
+        reply = f"☑️ <@{submission['Uid']}> You didn't beat the record, but your {submission['GM']} submission for \"{subMessage}\" has been added to the scoreboard!{linkToSubmission}"
+    await feedback_channel.send(reply)
+
+async def send_changelog(bot, botInfo, submission, prevholder, custom_new_holder):
+    new_holder = submission["IGN"]
+    if custom_new_holder:
+        new_holder = custom_new_holder
+    changelog_channel = bot.get_channel(int(botInfo["changelogChannelID"]))
+
+    subMessage = submission["message"][0:47]
+    await changelog_channel.send(
+        f"> {platform_emoji(submission['platform'])} {submission['platform']}\n\
+        > {submission['GM']}\n\
+        > {subMessage}\n\
+        > \n\
+        > `{prevholder} -> {new_holder}`\n\
+        > \n> {submission['submissionMessage']}"
+    )
+
+async def accept_impl(ctx, bot, scode, prevholders, newholders, botInfo, queue_json, queue, db_json, parkour_db_json, users):
 
     # Find the submission in the queue db
     submission = None
@@ -22,24 +57,29 @@ async def accept_impl(ctx, bot, scode, prevholder, newholder, botInfo, queue_jso
     msg = await queue_channel.fetch_message(int(submission["botMessage"]))
     await msg.delete()
 
-    # send accept message
-    subMessage = submission["message"][0:47]
-    if len(submission["message"]) > 47:
-        subMessage = subMessage + "..."
-    
-    if (submission["submissionMessage"]):
-        linkToSubmission = f"\nLink to your submission: {submission['submissionMessage']}"
+    beaten = True
+    if submission["GM"] == "Parkour":
+        message = submission["message"]
+        beaten, prevholders, newholders = await register_impl(
+            ctx,
+            bot,
+            *message.split("."),
+            str(submission["Uid"]),
+            submission["score"],
+            submission["submissionMessage"],
+            db_json,
+            parkour_db_json,
+            users
+        )
+        platform = submission["platform"]
+        prevholders = " ".join([get_user_info(prevholder, users)[platform.lower()] for prevholder in prevholders]) if prevholders else "N/A"
+        newholders = " ".join([get_user_info(newholder, users)[platform.lower()] for newholder in newholders]) if newholders else "N/A"
 
-    feedback_channel = bot.get_channel(int(botInfo["feedbackChannelID"]))
-    await feedback_channel.send(f"✅ <@{submission['Uid']}> Your {submission['GM']} submission for \"{subMessage}\" has been accepted!{linkToSubmission}")
+    # send accept message
+    await send_submitter_reply(bot, botInfo, submission, beaten)
 
     # update the changelog
-    new_holder = submission["IGN"]
-    if newholder:
-        new_holder = newholder
-    changelog_channel = bot.get_channel(int(botInfo["changelogChannelID"]))
-
-    await changelog_channel.send(f"> {platform_emoji(submission['platform'])} {submission['platform']}\n> {submission['GM']}\n> {subMessage}\n> \n> `{prevholder} -> {new_holder}`\n> \n> {submission['submissionMessage']}")
+    if beaten: await send_changelog(bot, botInfo, submission, prevholders, newholders)
 
     # Send reply to the reviewer that submitted the record
     await ctx.respond(f"Submission {scode} accepted")
