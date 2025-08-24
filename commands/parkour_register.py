@@ -80,7 +80,8 @@ async def register_impl(ctx, bot, platform, mode, map_name, level, discord_id, s
             old_holders = [ parkour_record["record_holders"][i] for i, s in enumerate(parkour_record["score"]) if s == parkour_record["score"][0] ]
             old_holders = list(dict.fromkeys(old_holders)) # remove duplicates while preserving order
             for id in old_holders:
-                users[id]["parkour_records"].remove(record_path)
+                if users.get(id, {}).get("parkour_records"):
+                    users[id]["parkour_records"].remove(record_path)
             
             # prepend id, score, evidence and time
             parkour_record["record_holders"] = discord_id + parkour_record["record_holders"]

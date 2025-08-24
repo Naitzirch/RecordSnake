@@ -23,7 +23,7 @@ async def parkour_info_impl(ctx, platform, mode, map_name, level, parkour_db_jso
         scores  = level["score"]
         times   = level["time"]
         evidence= level["evidence"]
-        holders = [users[id][platform.lower()] for id in holders]
+        holders = [users.get(id, {}).get(platform.lower(), "Not Connected") for id in holders]
         scores  = [from_millis(score) for score in scores]
         if not holders: holders = ["N/A"]
         if not scores: scores = ["N/A"]

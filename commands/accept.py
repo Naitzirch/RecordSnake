@@ -72,8 +72,8 @@ async def accept_impl(ctx, bot, scode, prevholders, newholders, botInfo, queue_j
             users
         )
         platform = submission["platform"]
-        prevholders = " ".join([get_user_info(prevholder, users)[platform.lower()] for prevholder in prevholders]) if prevholders else "N/A"
-        newholders = " ".join([get_user_info(newholder, users)[platform.lower()] for newholder in newholders]) if newholders else "N/A"
+        prevholders = " ".join([users.get(prevholder, {}).get(platform.lower(), "Not Connected") for prevholder in prevholders]) if prevholders else "N/A"
+        newholders = " ".join([users.get(newholder, {}).get(platform.lower(), "Not Connected") for newholder in newholders]) if newholders else "N/A"
 
     # send accept message
     await send_submitter_reply(bot, botInfo, submission, beaten)
