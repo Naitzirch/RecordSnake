@@ -58,7 +58,7 @@ async def accept_impl(ctx, bot, scode, prevholders, newholders, botInfo, queue_j
     await msg.delete()
 
     beaten = True
-    if submission["GM"] == "Parkour":
+    if submission["GM"] == "Parkour Best times":
         message = submission["message"]
         beaten, prevholders, newholders = await register_impl(
             ctx,

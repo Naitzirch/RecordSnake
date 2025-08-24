@@ -2,8 +2,8 @@ import discord
 from helperfunctions import *
 
 async def submit_impl(ctx, bot, platform, game, record, evidence, attachment, botInfo, users, db_json, queue_json, queue, score=""):
-    if game.lower() == "parkour" and score == "":
-        await ctx.respond("Use `/parkour submit` for Parkour submissions :)")
+    if game.lower() == "parkour best times" and score == "":
+        await ctx.respond("Use `/parkour submit` for Parkour Best times submissions :)")
         return
     
     user = get_user_info(str(ctx.author.id), users)

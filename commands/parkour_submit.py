@@ -10,7 +10,7 @@ async def submit_parkour_impl(ctx, bot, platform, mode, map_name, level, score, 
         await ctx.respond("Invalid time format, use mm:ss:ttt e.g. 01:23:456 for 1 minute 23 seconds and 456 thousands", ephemeral=True)
         return
     
-    game = "Parkour"
+    game = "Parkour Best times"
     record = make_path(platform, mode, map_name, level)
     attachment = None
     
