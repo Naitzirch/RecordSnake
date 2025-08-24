@@ -64,4 +64,3 @@ async def parkour_info_impl(ctx, platform, mode, map_name, level, parkour_db_jso
     )
 
     await ctx.respond(embed=embed)
-    https://discord.com/channels/797165284241702972/797167515292794891/1409179219652640790
