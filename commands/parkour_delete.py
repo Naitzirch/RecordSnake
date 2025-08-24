@@ -10,7 +10,8 @@ def remove_parkour_record(parkour_db, users, path):
     record_holders = parkour_record.get("record_holders", [])
     for record_holder in record_holders:
         try:
-            users[record_holder]["parkour_records"].remove(path) # remove record from holders in users db
+            if users.get(record_holder, {}).get("parkour_records"):
+                users[record_holder]["parkour_records"].remove(path) # remove record from holders in users db
         except ValueError:
             pass
 

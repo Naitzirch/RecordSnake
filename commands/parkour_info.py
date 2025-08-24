@@ -20,11 +20,12 @@ async def parkour_info_impl(ctx, platform, mode, map_name, level, parkour_db_jso
         await ctx.respond("This map or level does not exist", ephemeral=True)
         return
 
+    limit = 8 # Add limit to prevent embed field from exceeding 1024 characters
     try:
-        holders = level["record_holders"]
-        scores  = level["score"]
-        times   = level["time"]
-        evidence= level["evidence"]
+        holders = level["record_holders"][:limit]
+        scores  = level["score"][:limit]
+        times   = level["time"][:limit]
+        evidence= level["evidence"][:limit]
         holders = [users.get(id, {}).get(platform.lower(), "Not Connected") for id in holders]
         scores  = [from_millis(score) for score in scores]
         if not holders: holders = ["N/A"]
@@ -63,3 +64,4 @@ async def parkour_info_impl(ctx, platform, mode, map_name, level, parkour_db_jso
     )
 
     await ctx.respond(embed=embed)
+    https://discord.com/channels/797165284241702972/797167515292794891/1409179219652640790
