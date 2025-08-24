@@ -10,9 +10,9 @@ from helperfunctions import get_data_from_path
 async def parkour_info_impl(ctx, platform, mode, map_name, level, parkour_db_json, users, message=''):
     parkour_db = parkour_db_json.data
 
-    # identifier = f"**Platform:** {platform}\n**Map:** {map_name}\n**Level:** {level}\n**Difficulty:** {mode}"
-    identifier = "Platform:\nMap:\nLevel:\nDifficulty:"
-    identifier_value = f"{platform}\n{map_name}\n{level}\n{mode}"
+    description = f"**Platform:** {platform}\n**Map:** {map_name}\n**Level:** {level}\n**Difficulty:** {mode}"
+    #identifier = "Platform:\nMap:\nLevel:\nDifficulty:"
+    #identifier_value = f"{platform}\n{map_name}\n{level}\n{mode}"
 
     try:
         level = parkour_db[platform][mode][map_name][level]
@@ -37,7 +37,7 @@ async def parkour_info_impl(ctx, platform, mode, map_name, level, parkour_db_jso
     dates = [datetime.fromisoformat(time).strftime("`%d/%m/%y`") for time in times]
     evidence = ["https://discord.com/channels/" + e for e in evidence]
     date_evidence = list(zip(dates, evidence))
-    date_evidence = [de[0] + "          " + de[1] for de in date_evidence]
+    date_evidence = [de[0] + " " + de[1] for de in date_evidence]
     if not date_evidence: date_evidence = ["N/A　　　N/A"]
     
     with open("textures.json", "r") as f:
@@ -50,13 +50,13 @@ async def parkour_info_impl(ctx, platform, mode, map_name, level, parkour_db_jso
     embed = (
         discord.Embed(
             title="Parkour Info",
-            description=None,
+            description=description,
             color=embed_color,
         )
         .set_author(name=message)
-        .add_field(name="Identifier", value=identifier)
-        .add_field(name="Value"     , value=identifier_value)
-        .add_field(name="‎", value="‎")
+        #.add_field(name="Identifier", value=identifier)
+        #.add_field(name="Value"     , value=identifier_value)
+        #.add_field(name="‎", value="‎")
         .add_field(name="Holder(s)", value="`" + "`\n`".join(holders) + "`")
         .add_field(name="Score", value="`" + "`\n`".join(scores) + "`")
         .add_field(name="Date           Evidence", value="\n".join(date_evidence))
